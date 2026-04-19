@@ -74,6 +74,12 @@ $routes = [
     'GET /api/repos/detail' => ['RepositoryController', 'detail'],
     'PUT /api/repos' => ['RepositoryController', 'update'],
     'DELETE /api/repos' => ['RepositoryController', 'delete'],
+    
+    'POST /api/git/clone' => ['GitController', 'clone'],
+    'POST /api/git/push' => ['GitController', 'push'],
+    'POST /api/git/pull' => ['GitController', 'pull'],
+    'GET /api/git/status' => ['GitController', 'status'],
+    'GET /api/git/log' => ['GitController', 'log'],
 ];
 
 // 匹配路由

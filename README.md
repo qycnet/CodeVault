@@ -100,6 +100,16 @@ php -S localhost:8000
 | PUT | /api/repos | 更新仓库设置 |
 | DELETE | /api/repos | 删除仓库 |
 
+### Git 操作
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/git/clone | Clone 仓库 |
+| POST | /api/git/push | Push 到远程 |
+| POST | /api/git/pull | Pull 从远程 |
+| GET | /api/git/status | 获取仓库状态 |
+| GET | /api/git/log | 获取提交历史 |
+
 ## 使用示例
 
 ### 发送验证码
