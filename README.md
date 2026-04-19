@@ -40,7 +40,7 @@ codevault/
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/your-org/codevault.git
+git clone https://github.com/qycnet/CodeVault.git
 cd codevault
 ```
 
