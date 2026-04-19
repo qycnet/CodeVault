@@ -25,6 +25,7 @@ class Session
             'path'      => $sessionConfig['cookie_path'],
             'secure'    => $sessionConfig['cookie_secure'],
             'httponly'  => $sessionConfig['cookie_httponly'],
+            'samesite'  => $sessionConfig['cookie_samesite'] ?? 'Strict',
         ]);
         
         session_start();

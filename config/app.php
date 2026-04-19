@@ -14,8 +14,9 @@ return [
         'name'          => 'codevault_session',
         'lifetime'      => 86400, // 24小时
         'cookie_path'   => '/',
-        'cookie_secure' => false, // 生产环境改为 true
+        'cookie_secure' => getenv('APP_ENV') === 'production', // 生产环境自动启用
         'cookie_httponly' => true,
+        'cookie_samesite' => 'Strict', // 防止 CSRF 攻击
     ],
     
     // Git 仓库路径
