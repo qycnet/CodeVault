@@ -32,11 +32,10 @@ class AuthController
         // 生成验证码
         $result = VerificationCode::create($email, 'register');
         
-        // TODO: 实际发送邮件（这里先返回验证码用于测试）
+        // TODO: 实际发送邮件
         return [
             'success' => true,
             'message' => '验证码已发送',
-            'code' => $result['code'], // 测试环境返回验证码，生产环境删除
         ];
     }
     
