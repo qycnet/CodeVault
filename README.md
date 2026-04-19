@@ -300,14 +300,6 @@ git commit -m "Initial commit"
 git push origin main
 ```
 
-## 开发团队
-
-- **开发工程师** - CodeMaster
-- **产品经理** - Steve
-- **安全审计** - Sentinel
-- **部署测试** - QA-Guard
-- **项目负责人** - 任老板
-
 ## License
 
 MIT License
