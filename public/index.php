@@ -80,6 +80,13 @@ $routes = [
     'POST /api/git/pull' => ['GitController', 'pull'],
     'GET /api/git/status' => ['GitController', 'status'],
     'GET /api/git/log' => ['GitController', 'log'],
+    
+    'GET /api/issues' => ['IssueController', 'list'],
+    'POST /api/issues' => ['IssueController', 'create'],
+    'GET /api/issues/detail' => ['IssueController', 'detail'],
+    'PUT /api/issues' => ['IssueController', 'update'],
+    'POST /api/issues/close' => ['IssueController', 'close'],
+    'DELETE /api/issues' => ['IssueController', 'delete'],
 ];
 
 // 匹配路由

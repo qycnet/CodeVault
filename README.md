@@ -110,6 +110,17 @@ php -S localhost:8000
 | GET | /api/git/status | 获取仓库状态 |
 | GET | /api/git/log | 获取提交历史 |
 
+### Issue 管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/issues | 获取 Issue 列表 |
+| POST | /api/issues | 创建 Issue |
+| GET | /api/issues/detail | 获取 Issue 详情 |
+| PUT | /api/issues | 更新 Issue |
+| POST | /api/issues/close | 关闭 Issue |
+| DELETE | /api/issues | 删除 Issue |
+
 ## 使用示例
 
 ### 发送验证码
