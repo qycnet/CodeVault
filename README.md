@@ -90,6 +90,16 @@ php -S localhost:8000
 | DELETE | /api/ssh-keys | 删除SSH Key |
 | GET | /api/ssh-keys/detail | 获取SSH Key详情 |
 
+### 仓库管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/repos | 获取当前用户的仓库列表 |
+| POST | /api/repos | 创建新仓库 |
+| GET | /api/repos/detail | 获取仓库详情 |
+| PUT | /api/repos | 更新仓库设置 |
+| DELETE | /api/repos | 删除仓库 |
+
 ## 使用示例
 
 ### 发送验证码

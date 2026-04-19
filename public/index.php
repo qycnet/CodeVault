@@ -68,6 +68,12 @@ $routes = [
     'POST /api/ssh-keys' => ['SshKeyController', 'add'],
     'DELETE /api/ssh-keys' => ['SshKeyController', 'delete'],
     'GET /api/ssh-keys/detail' => ['SshKeyController', 'detail'],
+    
+    'GET /api/repos' => ['RepositoryController', 'list'],
+    'POST /api/repos' => ['RepositoryController', 'create'],
+    'GET /api/repos/detail' => ['RepositoryController', 'detail'],
+    'PUT /api/repos' => ['RepositoryController', 'update'],
+    'DELETE /api/repos' => ['RepositoryController', 'delete'],
 ];
 
 // 匹配路由
