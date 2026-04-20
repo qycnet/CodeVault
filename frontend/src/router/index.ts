@@ -79,6 +79,24 @@ const routes: RouteRecordRaw[] = [
     name: 'SSHKeys',
     component: () => import('@/views/SSHKeys.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import('@/views/Search.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import('@/views/Notifications.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/views/Settings.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
