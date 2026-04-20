@@ -75,6 +75,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/repos/:owner/:repo/pulls/new',
+    name: 'CreatePullRequest',
+    component: () => import('@/views/CreatePullRequest.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/settings/ssh-keys',
     name: 'SSHKeys',
     component: () => import('@/views/SSHKeys.vue'),
