@@ -23,7 +23,12 @@
             </el-breadcrumb>
           </div>
           
-          <div class="branch-selector">
+          <div class="header-actions">
+            <el-button type="primary" size="small" @click="goToUpload">
+              <el-icon class="el-icon--left"><Upload /></el-icon>
+              上传文件
+            </el-button>
+            
             <el-select v-model="selectedBranch" @change="onBranchChange">
               <el-option
                 v-for="branch in branches"
@@ -106,7 +111,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Folder, Document, CopyDocument, Download, View } from '@element-plus/icons-vue'
+import { Folder, Document, CopyDocument, Download, View, Upload } from '@element-plus/icons-vue'
 import api from '@/api/index'
 
 const route = useRoute()
@@ -238,6 +243,16 @@ function viewRaw() {
   window.open(url, '_blank')
 }
 
+function goToUpload() {
+  router.push({
+    path: `/repos/${owner.value}/${repo.value}/upload`,
+    query: {
+      branch: currentBranch.value,
+      path: currentPath.value
+    }
+  })
+}
+
 watch([currentBranch, currentPath], () => {
   fetchFiles()
 })
@@ -271,6 +286,12 @@ onMounted(() => {
 
 .breadcrumb a:hover {
   text-decoration: underline;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .file-name {

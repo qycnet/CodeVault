@@ -109,6 +109,12 @@ $routes = [
     'PUT /api/comments' => ['CommentController', 'update'],
     'DELETE /api/comments' => ['CommentController', 'delete'],
     'GET /api/comments/line' => ['CommentController', 'lineComments'],
+    
+    // 文件上传 API
+    'POST /api/files/upload' => ['FileController', 'upload'],
+    'POST /api/files/upload-multiple' => ['FileController', 'uploadMultiple'],
+    'DELETE /api/files' => ['FileController', 'delete'],
+    'POST /api/files/mkdir' => ['FileController', 'createDirectory'],
 ];
 
 // 匹配路由
@@ -121,7 +127,12 @@ if (isset($routes[$routeKey])) {
     $controller = new $controllerClass();
     
     try {
-        $result = $controller->$methodName($input);
+        // 检查是否有文件上传
+        if (!empty($_FILES)) {
+            $result = $controller->$methodName($input, $_FILES);
+        } else {
+            $result = $controller->$methodName($input);
+        }
         echo json_encode($result, JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         http_response_code(500);

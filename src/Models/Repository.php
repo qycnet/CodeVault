@@ -150,4 +150,28 @@ class Repository
         $repo = self::findById($repoId);
         return $repo && $repo['user_id'] === $userId;
     }
+    
+    /**
+     * 检查用户是否有写权限
+     */
+    public static function canWrite(int $repoId, int $userId): bool
+    {
+        $repo = self::findById($repoId);
+        if (!$repo) {
+            return false;
+        }
+        
+        // 所有者有写权限
+        if ($repo['user_id'] === $userId) {
+            return true;
+        }
+        
+        // 检查协作者表（如果有）
+        $collaborator = Connection::queryOne(
+            "SELECT * FROM collaborators WHERE repo_id = ? AND user_id = ?",
+            [$repoId, $userId]
+        );
+        
+        return $collaborator !== null;
+    }
 }

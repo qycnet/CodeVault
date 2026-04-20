@@ -163,6 +163,12 @@ const routes: RouteRecordRaw[] = [
     name: 'LabelsMilestones',
     component: () => import('@/views/LabelsMilestones.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/upload',
+    name: 'FileUpload',
+    component: () => import('@/views/FileUpload.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
