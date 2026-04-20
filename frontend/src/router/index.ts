@@ -133,6 +133,12 @@ const routes: RouteRecordRaw[] = [
     name: 'Webhooks',
     component: () => import('@/views/Webhooks.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/labels',
+    name: 'LabelsMilestones',
+    component: () => import('@/views/LabelsMilestones.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
