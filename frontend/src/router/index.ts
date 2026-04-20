@@ -169,6 +169,12 @@ const routes: RouteRecordRaw[] = [
     name: 'FileUpload',
     component: () => import('@/views/FileUpload.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/settings/branches',
+    name: 'BranchProtection',
+    component: () => import('@/views/BranchProtection.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

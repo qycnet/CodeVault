@@ -115,6 +115,13 @@ $routes = [
     'POST /api/files/upload-multiple' => ['FileController', 'uploadMultiple'],
     'DELETE /api/files' => ['FileController', 'delete'],
     'POST /api/files/mkdir' => ['FileController', 'createDirectory'],
+    
+    // 分支保护 API
+    'GET /api/branch-protection' => ['BranchProtectionController', 'list'],
+    'GET /api/branch-protection/detail' => ['BranchProtectionController', 'detail'],
+    'POST /api/branch-protection' => ['BranchProtectionController', 'create'],
+    'PUT /api/branch-protection' => ['BranchProtectionController', 'update'],
+    'DELETE /api/branch-protection' => ['BranchProtectionController', 'delete'],
 ];
 
 // 匹配路由
