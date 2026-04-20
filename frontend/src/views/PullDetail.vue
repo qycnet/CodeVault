@@ -108,6 +108,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Right } from '@element-plus/icons-vue'
+import DOMPurify from 'dompurify'
 import api from '@/api/index'
 
 const route = useRoute()
@@ -125,7 +126,8 @@ const comments = ref<any[]>([])
 const newComment = ref('')
 
 const renderedDescription = computed(() => {
-  return pr.value.description || '暂无描述'
+  // 使用 DOMPurify 进行 XSS 防护
+  return DOMPurify.sanitize(pr.value.description || '暂无描述')
 })
 
 function getStatusType(status: string) {

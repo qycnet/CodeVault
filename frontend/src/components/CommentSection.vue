@@ -94,6 +94,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import DOMPurify from 'dompurify'
 import api from '@/api/index'
 
 interface Props {
@@ -133,11 +134,14 @@ function formatTime(time: string) {
 
 function renderContent(content: string) {
   // 简单的 Markdown 渲染（实际项目应使用 marked 等库）
-  return content
+  const html = content
     .replace(/\n/g, '<br>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+  
+  // 使用 DOMPurify 进行 XSS 防护
+  return DOMPurify.sanitize(html)
 }
 
 function canEdit(comment: any) {
