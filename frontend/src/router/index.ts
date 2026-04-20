@@ -115,6 +115,24 @@ const routes: RouteRecordRaw[] = [
     name: 'OrganizationDetail',
     component: () => import('@/views/OrganizationDetail.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/releases',
+    name: 'Releases',
+    component: () => import('@/views/Releases.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/wiki',
+    name: 'Wiki',
+    component: () => import('@/views/Wiki.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/settings/webhooks',
+    name: 'Webhooks',
+    component: () => import('@/views/Webhooks.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
