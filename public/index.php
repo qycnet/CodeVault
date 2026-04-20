@@ -87,6 +87,20 @@ $routes = [
     'PUT /api/issues' => ['IssueController', 'update'],
     'POST /api/issues/close' => ['IssueController', 'close'],
     'DELETE /api/issues' => ['IssueController', 'delete'],
+    
+    'GET /api/pull-requests' => ['PRController', 'list'],
+    'POST /api/pull-requests' => ['PRController', 'create'],
+    'GET /api/pull-requests/detail' => ['PRController', 'detail'],
+    'POST /api/pull-requests/merge' => ['PRController', 'merge'],
+    'POST /api/pull-requests/close' => ['PRController', 'close'],
+    'POST /api/pull-requests/reopen' => ['PRController', 'reopen'],
+    
+    'GET /api/comments' => ['CommentController', 'list'],
+    'POST /api/comments' => ['CommentController', 'create'],
+    'GET /api/comments/detail' => ['CommentController', 'detail'],
+    'PUT /api/comments' => ['CommentController', 'update'],
+    'DELETE /api/comments' => ['CommentController', 'delete'],
+    'GET /api/comments/line' => ['CommentController', 'lineComments'],
 ];
 
 // 匹配路由
