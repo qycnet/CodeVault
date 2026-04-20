@@ -93,12 +93,12 @@
           </div>
         </div>
         
-        <div class="readme-section" v-if="readme">
+        <div class="readme-section" v-if="safeReadme">
           <div class="readme-header">
             <el-icon><Document /></el-icon>
             <span>README.md</span>
           </div>
-          <div class="readme-content" v-html="readme"></div>
+          <div class="readme-content" v-html="safeReadme"></div>
         </div>
       </div>
       
@@ -158,6 +158,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import DOMPurify from 'dompurify'
 import {
   ArrowLeft, Star, Share, Download, Document, ChatDotRound,
   GitMerge, Setting, Plus, Folder
@@ -206,6 +207,12 @@ const readme = ref(`
 <li>问题追踪 (Issues)</li>
 </ul>
 `)
+
+// XSS 防护：使用 DOMPurify 过滤 readme HTML
+const safeReadme = computed(() => {
+  if (!readme.value) return ''
+  return DOMPurify.sanitize(readme.value)
+})
 
 const showCreateIssue = ref(false)
 const showCreatePR = ref(false)
