@@ -57,6 +57,30 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/repos/:owner/:repo/ci',
+    name: 'CICD',
+    component: () => import('@/views/CICD.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/projects',
+    name: 'Projects',
+    component: () => import('@/views/Projects.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/views/Admin.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/api-docs',
+    name: 'ApiDocs',
+    component: () => import('@/views/ApiDocs.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/repos/:owner/:repo/issues',
     name: 'IssueList',
     component: () => import('@/views/IssueList.vue'),

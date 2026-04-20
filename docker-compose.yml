@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Web 应用
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./data/git:/var/git/repositories
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DB_HOST=db
+      - DB_NAME=codevault
+      - DB_USER=codevault
+      - DB_PASS=secret
+      - REDIS_HOST=redis
+    networks:
+      - codevault-network
+
+  # MySQL 数据库
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_secret
+      - MYSQL_DATABASE=codevault
+      - MYSQL_USER=codevault
+      - MYSQL_PASSWORD=secret
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - codevault-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - codevault-network
+
+  # 前端开发服务器（开发环境）
+  frontend:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    profiles:
+      - dev
+    networks:
+      - codevault-network
+
+volumes:
+  db-data:
+  redis-data:
+
+networks:
+  codevault-network:
+    driver: bridge
