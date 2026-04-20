@@ -148,4 +148,62 @@ class GitController
         
         return GitService::branches($repo['git_path']);
     }
+    
+    /**
+     * 获取提交历史
+     */
+    public function commits(array $data): array
+    {
+        $user = Session::user();
+        $owner = trim($data['owner'] ?? '');
+        $repoName = trim($data['repo'] ?? '');
+        $branch = trim($data['branch'] ?? 'main');
+        $page = (int) ($data['page'] ?? 0);
+        $perPage = (int) ($data['per_page'] ?? 30);
+        
+        if (empty($owner) || empty($repoName)) {
+            return ['code' => 400, 'message' => '参数错误'];
+        }
+        
+        // 获取仓库
+        $repo = \CodeVault\Models\Repository::findByOwnerAndName($owner, $repoName);
+        if (!$repo) {
+            return ['code' => 404, 'message' => '仓库不存在'];
+        }
+        
+        // 检查访问权限
+        if ($repo['is_private'] && (!$user || !\CodeVault\Models\Repository::canAccess($repo['id'], $user['id']))) {
+            return ['code' => 403, 'message' => '无权访问'];
+        }
+        
+        return GitService::commits($repo['git_path'], $branch, $page, $perPage);
+    }
+    
+    /**
+     * 获取提交详情
+     */
+    public function commit(array $data): array
+    {
+        $user = Session::user();
+        $owner = trim($data['owner'] ?? '');
+        $repoName = trim($data['repo'] ?? '');
+        $hash = trim($data['hash'] ?? '');
+        
+        if (empty($owner) || empty($repoName) || empty($hash)) {
+            return ['code' => 400, 'message' => '参数错误'];
+        }
+        
+        // 获取仓库
+        $repo = \CodeVault\Models\Repository::findByOwnerAndName($owner, $repoName);
+        if (!$repo) {
+            return ['code' => 404, 'message' => '仓库不存在'];
+        }
+        
+        // 检查访问权限
+        if ($repo['is_private'] && (!$user || !\CodeVault\Models\Repository::canAccess($repo['id'], $user['id']))) {
+            return ['code' => 403, 'message' => '无权访问'];
+        }
+        
+        return GitService::commit($repo['git_path'], $hash);
+    }
 }

@@ -82,6 +82,9 @@ $routes = [
     'POST /api/git/pull' => ['GitController', 'pull'],
     'GET /api/git/status' => ['GitController', 'status'],
     'GET /api/git/log' => ['GitController', 'log'],
+    'GET /api/repos/branches' => ['GitController', 'branches'],
+    'GET /api/repos/commits' => ['GitController', 'commits'],
+    'GET /api/repos/commit' => ['GitController', 'commit'],
     
     'GET /api/issues' => ['IssueController', 'list'],
     'POST /api/issues' => ['IssueController', 'create'],

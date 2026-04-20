@@ -45,6 +45,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/repos/:owner/:repo/commits/:branch?',
+    name: 'CommitHistory',
+    component: () => import('@/views/CommitHistory.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/repos/:owner/:repo/issues',
     name: 'IssueList',
     component: () => import('@/views/IssueList.vue'),

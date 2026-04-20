@@ -317,4 +317,119 @@ class GitService
             'data' => $branches
         ];
     }
+    
+    /**
+     * 获取提交历史
+     */
+    public static function commits(string $gitPath, string $branch = 'main', int $page = 0, int $perPage = 30): array
+    {
+        if (!is_dir($gitPath)) {
+            return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
+        }
+        
+        $skip = $page * $perPage;
+        
+        // 获取提交列表
+        $cmd = sprintf(
+            'cd %s && git log %s --format="%%H|%%h|%%s|%%an|%%ae|%%ci" --skip=%d -n %d 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($branch),
+            $skip,
+            $perPage
+        );
+        
+        exec($cmd, $output, $returnCode);
+        
+        $commits = [];
+        foreach ($output as $line) {
+            $parts = explode('|', $line);
+            if (count($parts) >= 6) {
+                $commits[] = [
+                    'full_hash' => $parts[0],
+                    'hash' => $parts[1],
+                    'message' => $parts[2],
+                    'author_name' => $parts[3],
+                    'author_email' => $parts[4],
+                    'time' => $parts[5],
+                    'author_avatar' => null // 可以使用 Gravatar
+                ];
+            }
+        }
+        
+        return [
+            'code' => 200,
+            'data' => $commits
+        ];
+    }
+    
+    /**
+     * 获取提交详情
+     */
+    public static function commit(string $gitPath, string $hash): array
+    {
+        if (!is_dir($gitPath)) {
+            return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
+        }
+        
+        // 获取提交信息
+        $cmd = sprintf(
+            'cd %s && git show --format="%%H|%%h|%%s|%%b|%%an|%%ae|%%ci" --no-patch %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($hash)
+        );
+        
+        exec($cmd, $output, $returnCode);
+        
+        if ($returnCode !== 0 || empty($output)) {
+            return ['code' => 404, 'message' => '提交不存在'];
+        }
+        
+        $parts = explode('|', $output[0]);
+        $commit = [
+            'full_hash' => $parts[0] ?? '',
+            'hash' => $parts[1] ?? '',
+            'message' => $parts[2] ?? '',
+            'full_message' => $parts[3] ?? '',
+            'author_name' => $parts[4] ?? '',
+            'author_email' => $parts[5] ?? '',
+            'time' => $parts[6] ?? '',
+            'files' => []
+        ];
+        
+        // 获取文件变更
+        $cmd = sprintf(
+            'cd %s && git show --name-status --format="" %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($hash)
+        );
+        
+        exec($cmd, $filesOutput);
+        
+        $files = [];
+        foreach ($filesOutput as $line) {
+            if (preg_match('/^([AMD])\s+(.+)$/', trim($line), $matches)) {
+                $status = $matches[1];
+                $path = $matches[2];
+                
+                // 获取变更统计
+                $statusText = 'modified';
+                if ($status === 'A') $statusText = 'added';
+                if ($status === 'D') $statusText = 'deleted';
+                
+                $files[] = [
+                    'status' => $statusText,
+                    'path' => $path,
+                    'additions' => 0, // 简化处理
+                    'deletions' => 0
+                ];
+            }
+        }
+        
+        $commit['files'] = $files;
+        
+        return [
+            'code' => 200,
+            'data' => $commit
+        ];
+    }
 }
