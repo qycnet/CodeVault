@@ -1,21 +1,4 @@
 <template>
-<<<<<<< HEAD
-  <div class="login-container">
-    <el-card class="login-card">
-      <template #header>
-        <div class="card-header">
-          <h2>CodeVault</h2>
-          <p>代码仓库管理系统</p>
-        </div>
-      </template>
-      
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
-        <el-form-item prop="login">
-          <el-input
-            v-model="form.login"
-            placeholder="邮箱或用户名"
-            prefix-icon="User"
-=======
   <div class="login-page">
     <div class="login-container">
       <div class="login-header">
@@ -39,7 +22,6 @@
             v-model="form.username"
             placeholder="用户名或邮箱"
             :prefix-icon="User"
->>>>>>> origin/main
             size="large"
           />
         </el-form-item>
@@ -49,22 +31,13 @@
             v-model="form.password"
             type="password"
             placeholder="密码"
-<<<<<<< HEAD
-            prefix-icon="Lock"
-            size="large"
-            show-password
-            @keyup.enter="handleLogin"
-=======
             :prefix-icon="Lock"
             size="large"
             show-password
->>>>>>> origin/main
           />
         </el-form-item>
         
         <el-form-item>
-<<<<<<< HEAD
-=======
           <div class="form-options">
             <el-checkbox v-model="rememberMe">记住我</el-checkbox>
             <el-link type="primary">忘记密码？</el-link>
@@ -72,48 +45,18 @@
         </el-form-item>
         
         <el-form-item>
->>>>>>> origin/main
           <el-button
             type="primary"
             size="large"
             :loading="loading"
-<<<<<<< HEAD
-            @click="handleLogin"
-            style="width: 100%"
-=======
             class="login-button"
             @click="handleLogin"
->>>>>>> origin/main
           >
             登录
           </el-button>
         </el-form-item>
       </el-form>
       
-<<<<<<< HEAD
-      <div class="footer-links">
-        <span>还没有账号？</span>
-        <router-link to="/register">立即注册</router-link>
-      </div>
-    </el-card>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/user'
-
-const router = useRouter()
-const userStore = useUserStore()
-
-const formRef = ref()
-const loading = ref(false)
-
-const form = reactive({
-  login: '',
-=======
       <div class="login-footer">
         <p>
           还没有账户？
@@ -141,15 +84,10 @@ const rememberMe = ref(false)
 
 const form = reactive({
   username: '',
->>>>>>> origin/main
   password: ''
 })
 
 const rules = {
-<<<<<<< HEAD
-  login: [{ required: true, message: '请输入邮箱或用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
-=======
   username: [
     { required: true, message: '请输入用户名或邮箱', trigger: 'blur' }
   ],
@@ -157,7 +95,6 @@ const rules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
   ]
->>>>>>> origin/main
 }
 
 async function handleLogin() {
@@ -165,14 +102,6 @@ async function handleLogin() {
   if (!valid) return
   
   loading.value = true
-<<<<<<< HEAD
-  try {
-    await userStore.login(form.login, form.password)
-    ElMessage.success('登录成功')
-    router.push('/')
-  } catch (e: any) {
-    ElMessage.error(e.message || '登录失败')
-=======
   
   try {
     await userStore.login(form)
@@ -183,58 +112,12 @@ async function handleLogin() {
     router.push(redirect)
   } catch (error) {
     // 错误已在拦截器中处理
->>>>>>> origin/main
   } finally {
     loading.value = false
   }
 }
 </script>
 
-<<<<<<< HEAD
-<style scoped>
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.login-card {
-  width: 400px;
-}
-
-.card-header {
-  text-align: center;
-}
-
-.card-header h2 {
-  margin: 0;
-  color: #409eff;
-}
-
-.card-header p {
-  margin: 8px 0 0;
-  color: #909399;
-  font-size: 14px;
-}
-
-.footer-links {
-  text-align: center;
-  margin-top: 16px;
-  font-size: 14px;
-  color: #909399;
-}
-
-.footer-links a {
-  color: #409eff;
-  text-decoration: none;
-  margin-left: 4px;
-}
-
-.footer-links a:hover {
-  text-decoration: underline;
-=======
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
@@ -315,6 +198,5 @@ async function handleLogin() {
       }
     }
   }
->>>>>>> origin/main
 }
 </style>

@@ -1,45 +1,4 @@
 <template>
-<<<<<<< HEAD
-  <div class="register-container">
-    <el-card class="register-card">
-      <template #header>
-        <div class="card-header">
-          <h2>注册 CodeVault</h2>
-          <p>创建您的账号</p>
-        </div>
-      </template>
-      
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
-        <el-form-item prop="email">
-          <el-input
-            v-model="form.email"
-            placeholder="邮箱地址"
-            prefix-icon="Message"
-            size="large"
-          />
-        </el-form-item>
-        
-        <el-form-item prop="code">
-          <div class="code-input">
-            <el-input
-              v-model="form.code"
-              placeholder="验证码"
-              prefix-icon="Key"
-              size="large"
-            />
-            <el-button
-              type="primary"
-              size="large"
-              :disabled="countdown > 0"
-              :loading="sendingCode"
-              @click="handleSendCode"
-            >
-              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-            </el-button>
-          </div>
-        </el-form-item>
-        
-=======
   <div class="register-page">
     <div class="register-container">
       <div class="register-header">
@@ -58,14 +17,10 @@
         class="register-form"
         @submit.prevent="handleRegister"
       >
->>>>>>> origin/main
         <el-form-item prop="username">
           <el-input
             v-model="form.username"
             placeholder="用户名"
-<<<<<<< HEAD
-            prefix-icon="User"
-=======
             :prefix-icon="User"
             size="large"
           />
@@ -76,7 +31,6 @@
             v-model="form.email"
             placeholder="邮箱地址"
             :prefix-icon="Message"
->>>>>>> origin/main
             size="large"
           />
         </el-form-item>
@@ -86,11 +40,7 @@
             v-model="form.password"
             type="password"
             placeholder="密码"
-<<<<<<< HEAD
-            prefix-icon="Lock"
-=======
             :prefix-icon="Lock"
->>>>>>> origin/main
             size="large"
             show-password
           />
@@ -101,15 +51,6 @@
             v-model="form.confirmPassword"
             type="password"
             placeholder="确认密码"
-<<<<<<< HEAD
-            prefix-icon="Lock"
-            size="large"
-            show-password
-            @keyup.enter="handleRegister"
-          />
-        </el-form-item>
-        
-=======
             :prefix-icon="Lock"
             size="large"
             show-password
@@ -146,41 +87,20 @@
           </el-checkbox>
         </el-form-item>
         
->>>>>>> origin/main
         <el-form-item>
           <el-button
             type="primary"
             size="large"
             :loading="loading"
-<<<<<<< HEAD
-            @click="handleRegister"
-            style="width: 100%"
-=======
             :disabled="!agreeTerms"
             class="register-button"
             @click="handleRegister"
->>>>>>> origin/main
           >
             注册
           </el-button>
         </el-form-item>
       </el-form>
       
-<<<<<<< HEAD
-      <div class="footer-links">
-        <span>已有账号？</span>
-        <router-link to="/login">立即登录</router-link>
-      </div>
-    </el-card>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/user'
-=======
       <div class="register-footer">
         <p>
           已有账户？
@@ -197,27 +117,10 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { User, Message, Lock, Key, Box } from '@element-plus/icons-vue'
->>>>>>> origin/main
 
 const router = useRouter()
 const userStore = useUserStore()
 
-<<<<<<< HEAD
-const formRef = ref()
-const loading = ref(false)
-const sendingCode = ref(false)
-const countdown = ref(0)
-
-const form = reactive({
-  email: '',
-  code: '',
-  username: '',
-  password: '',
-  confirmPassword: ''
-})
-
-const validatePass = (_rule: any, value: any, callback: any) => {
-=======
 const formRef = ref(null)
 const loading = ref(false)
 const sendingCode = ref(false)
@@ -233,7 +136,6 @@ const form = reactive({
 })
 
 const validateConfirmPassword = (rule, value, callback) => {
->>>>>>> origin/main
   if (value !== form.password) {
     callback(new Error('两次输入的密码不一致'))
   } else {
@@ -242,30 +144,6 @@ const validateConfirmPassword = (rule, value, callback) => {
 }
 
 const rules = {
-<<<<<<< HEAD
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-  ],
-  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度为 3-20 个字符', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 8, message: '密码至少 8 个字符', trigger: 'blur' }
-  ],
-  confirmPassword: [
-    { required: true, message: '请确认密码', trigger: 'blur' },
-    { validator: validatePass, trigger: 'blur' }
-  ]
-}
-
-async function handleSendCode() {
-  if (!form.email) {
-    ElMessage.warning('请先输入邮箱')
-=======
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '用户名长度为3-20个字符', trigger: 'blur' },
@@ -294,16 +172,10 @@ async function sendVerificationCode() {
   try {
     await formRef.value.validateField('email')
   } catch {
->>>>>>> origin/main
     return
   }
   
   sendingCode.value = true
-<<<<<<< HEAD
-  try {
-    await userStore.sendCode(form.email)
-    ElMessage.success('验证码已发送')
-=======
   
   try {
     // TODO: 调用发送验证码 API
@@ -311,7 +183,6 @@ async function sendVerificationCode() {
     ElMessage.success('验证码已发送到您的邮箱')
     
     // 开始倒计时
->>>>>>> origin/main
     countdown.value = 60
     const timer = setInterval(() => {
       countdown.value--
@@ -319,13 +190,8 @@ async function sendVerificationCode() {
         clearInterval(timer)
       }
     }, 1000)
-<<<<<<< HEAD
-  } catch (e: any) {
-    ElMessage.error(e.message || '发送失败')
-=======
   } catch (error) {
     ElMessage.error('发送验证码失败')
->>>>>>> origin/main
   } finally {
     sendingCode.value = false
   }
@@ -335,15 +201,6 @@ async function handleRegister() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
   
-<<<<<<< HEAD
-  loading.value = true
-  try {
-    await userStore.register(form.email, form.username, form.password, form.code)
-    ElMessage.success('注册成功，请登录')
-    router.push('/login')
-  } catch (e: any) {
-    ElMessage.error(e.message || '注册失败')
-=======
   if (!agreeTerms.value) {
     ElMessage.warning('请先同意服务条款和隐私政策')
     return
@@ -363,67 +220,12 @@ async function handleRegister() {
     router.push('/login')
   } catch (error) {
     // 错误已在拦截器中处理
->>>>>>> origin/main
   } finally {
     loading.value = false
   }
 }
 </script>
 
-<<<<<<< HEAD
-<style scoped>
-.register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.register-card {
-  width: 400px;
-}
-
-.card-header {
-  text-align: center;
-}
-
-.card-header h2 {
-  margin: 0;
-  color: #409eff;
-}
-
-.card-header p {
-  margin: 8px 0 0;
-  color: #909399;
-  font-size: 14px;
-}
-
-.code-input {
-  display: flex;
-  gap: 12px;
-}
-
-.code-input .el-input {
-  flex: 1;
-}
-
-.footer-links {
-  text-align: center;
-  margin-top: 16px;
-  font-size: 14px;
-  color: #909399;
-}
-
-.footer-links a {
-  color: #409eff;
-  text-decoration: none;
-  margin-left: 4px;
-}
-
-.footer-links a:hover {
-  text-decoration: underline;
-=======
 <style lang="scss" scoped>
 .register-page {
   min-height: 100vh;
@@ -506,6 +308,5 @@ async function handleRegister() {
       }
     }
   }
->>>>>>> origin/main
 }
 </style>
