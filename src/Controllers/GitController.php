@@ -206,4 +206,97 @@ class GitController
         
         return GitService::commit($repo['git_path'], $hash);
     }
+    
+    /**
+     * 获取分支最新提交
+     */
+    public function branchCommit(array $data): array
+    {
+        $user = Session::user();
+        $owner = trim($data['owner'] ?? '');
+        $repoName = trim($data['repo'] ?? '');
+        $branch = trim($data['branch'] ?? 'main');
+        
+        if (empty($owner) || empty($repoName)) {
+            return ['code' => 400, 'message' => '参数错误'];
+        }
+        
+        // 获取仓库
+        $repo = \CodeVault\Models\Repository::findByOwnerAndName($owner, $repoName);
+        if (!$repo) {
+            return ['code' => 404, 'message' => '仓库不存在'];
+        }
+        
+        // 检查访问权限
+        if ($repo['is_private'] && (!$user || !\CodeVault\Models\Repository::canAccess($repo['id'], $user['id']))) {
+            return ['code' => 403, 'message' => '无权访问'];
+        }
+        
+        return GitService::branchCommit($repo['git_path'], $branch);
+    }
+    
+    /**
+     * 创建分支
+     */
+    public function createBranch(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['code' => 401, 'message' => '未登录'];
+        }
+        
+        $owner = trim($data['owner'] ?? '');
+        $repoName = trim($data['repo'] ?? '');
+        $name = trim($data['name'] ?? '');
+        $source = trim($data['source'] ?? 'main');
+        
+        if (empty($owner) || empty($repoName) || empty($name)) {
+            return ['code' => 400, 'message' => '参数错误'];
+        }
+        
+        // 获取仓库
+        $repo = \CodeVault\Models\Repository::findByOwnerAndName($owner, $repoName);
+        if (!$repo) {
+            return ['code' => 404, 'message' => '仓库不存在'];
+        }
+        
+        // 检查写权限
+        if (!\CodeVault\Models\Repository::isOwner($repo['id'], $user['id'])) {
+            return ['code' => 403, 'message' => '无权操作'];
+        }
+        
+        return GitService::createBranch($repo['git_path'], $name, $source);
+    }
+    
+    /**
+     * 删除分支
+     */
+    public function deleteBranch(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['code' => 401, 'message' => '未登录'];
+        }
+        
+        $owner = trim($data['owner'] ?? '');
+        $repoName = trim($data['repo'] ?? '');
+        $name = trim($data['name'] ?? '');
+        
+        if (empty($owner) || empty($repoName) || empty($name)) {
+            return ['code' => 400, 'message' => '参数错误'];
+        }
+        
+        // 获取仓库
+        $repo = \CodeVault\Models\Repository::findByOwnerAndName($owner, $repoName);
+        if (!$repo) {
+            return ['code' => 404, 'message' => '仓库不存在'];
+        }
+        
+        // 检查写权限
+        if (!\CodeVault\Models\Repository::isOwner($repo['id'], $user['id'])) {
+            return ['code' => 403, 'message' => '无权操作'];
+        }
+        
+        return GitService::deleteBranch($repo['git_path'], $name);
+    }
 }

@@ -432,4 +432,112 @@ class GitService
             'data' => $commit
         ];
     }
+    
+    /**
+     * 获取分支最新提交
+     */
+    public static function branchCommit(string $gitPath, string $branch): array
+    {
+        if (!is_dir($gitPath)) {
+            return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
+        }
+        
+        $cmd = sprintf(
+            'cd %s && git log -1 --format="%%H|%%h|%%s|%%an|%%ci" %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($branch)
+        );
+        
+        exec($cmd, $output, $returnCode);
+        
+        if ($returnCode !== 0 || empty($output)) {
+            return ['code' => 404, 'message' => '分支不存在'];
+        }
+        
+        $parts = explode('|', $output[0]);
+        
+        return [
+            'code' => 200,
+            'data' => [
+                'full_hash' => $parts[0] ?? '',
+                'hash' => $parts[1] ?? '',
+                'message' => $parts[2] ?? '',
+                'author_name' => $parts[3] ?? '',
+                'time' => $parts[4] ?? ''
+            ]
+        ];
+    }
+    
+    /**
+     * 创建分支
+     */
+    public static function createBranch(string $gitPath, string $name, string $source): array
+    {
+        if (!is_dir($gitPath)) {
+            return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
+        }
+        
+        // 检查分支是否已存在
+        $cmd = sprintf(
+            'cd %s && git show-ref --verify --quiet refs/heads/%s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($name)
+        );
+        exec($cmd, $output, $returnCode);
+        
+        if ($returnCode === 0) {
+            return ['code' => 400, 'message' => '分支已存在'];
+        }
+        
+        // 创建分支
+        $cmd = sprintf(
+            'cd %s && git branch %s %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($name),
+            escapeshellarg($source)
+        );
+        exec($cmd, $output, $returnCode);
+        
+        if ($returnCode !== 0) {
+            return ['code' => 500, 'message' => '创建分支失败: ' . implode("\n", $output)];
+        }
+        
+        return [
+            'code' => 200,
+            'message' => '分支创建成功',
+            'data' => ['name' => $name, 'source' => $source]
+        ];
+    }
+    
+    /**
+     * 删除分支
+     */
+    public static function deleteBranch(string $gitPath, string $name): array
+    {
+        if (!is_dir($gitPath)) {
+            return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
+        }
+        
+        // 禁止删除 main/master
+        if ($name === 'main' || $name === 'master') {
+            return ['code' => 400, 'message' => '不能删除默认分支'];
+        }
+        
+        // 删除分支
+        $cmd = sprintf(
+            'cd %s && git branch -D %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($name)
+        );
+        exec($cmd, $output, $returnCode);
+        
+        if ($returnCode !== 0) {
+            return ['code' => 500, 'message' => '删除分支失败: ' . implode("\n", $output)];
+        }
+        
+        return [
+            'code' => 200,
+            'message' => '分支已删除'
+        ];
+    }
 }

@@ -85,6 +85,9 @@ $routes = [
     'GET /api/repos/branches' => ['GitController', 'branches'],
     'GET /api/repos/commits' => ['GitController', 'commits'],
     'GET /api/repos/commit' => ['GitController', 'commit'],
+    'GET /api/repos/branch/commit' => ['GitController', 'branchCommit'],
+    'POST /api/repos/branch' => ['GitController', 'createBranch'],
+    'DELETE /api/repos/branch' => ['GitController', 'deleteBranch'],
     
     'GET /api/issues' => ['IssueController', 'list'],
     'POST /api/issues' => ['IssueController', 'create'],

@@ -51,6 +51,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/repos/:owner/:repo/branches',
+    name: 'BranchManager',
+    component: () => import('@/views/BranchManager.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/repos/:owner/:repo/issues',
     name: 'IssueList',
     component: () => import('@/views/IssueList.vue'),
