@@ -146,6 +146,18 @@ $routes = [
     'POST /api/repos/milestones' => ['ApiController', 'createMilestone'],
     'GET /api/orgs' => ['ApiController', 'listOrgs'],
     'POST /api/orgs' => ['ApiController', 'createOrg'],
+    
+    // Actions API
+    'GET /api/actions/workflows' => ['ActionsController', 'listWorkflows'],
+    'GET /api/actions/workflows/detail' => ['ActionsController', 'getWorkflow'],
+    'POST /api/actions/workflows' => ['ActionsController', 'createWorkflow'],
+    'PUT /api/actions/workflows' => ['ActionsController', 'updateWorkflow'],
+    'DELETE /api/actions/workflows' => ['ActionsController', 'deleteWorkflow'],
+    'GET /api/actions/runs' => ['ActionsController', 'listRuns'],
+    'GET /api/actions/runs/detail' => ['ActionsController', 'getRun'],
+    'POST /api/actions/trigger' => ['ActionsController', 'triggerWorkflow'],
+    'POST /api/actions/rerun' => ['ActionsController', 'rerun'],
+    'POST /api/actions/cancel' => ['ActionsController', 'cancelRun'],
 ];
 
 // 匹配路由
