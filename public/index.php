@@ -127,6 +127,25 @@ $routes = [
     'GET /api/notification/settings' => ['NotificationController', 'getSettings'],
     'PUT /api/notification/settings' => ['NotificationController', 'updateSettings'],
     'POST /api/notification/test' => ['NotificationController', 'sendTest'],
+    
+    // REST API
+    'GET /api' => ['ApiController', 'docs'],
+    'GET /api/users' => ['ApiController', 'listUsers'],
+    'GET /api/users/detail' => ['ApiController', 'getUser'],
+    'GET /api/search/repositories' => ['ApiController', 'searchRepos'],
+    'GET /api/search/issues' => ['ApiController', 'searchIssues'],
+    'GET /api/search/users' => ['ApiController', 'searchUsers'],
+    'GET /api/repos/stargazers' => ['ApiController', 'listStargazers'],
+    'POST /api/repos/star' => ['ApiController', 'starRepo'],
+    'DELETE /api/repos/star' => ['ApiController', 'unstarRepo'],
+    'GET /api/repos/forks' => ['ApiController', 'listForks'],
+    'POST /api/repos/fork' => ['ApiController', 'forkRepo'],
+    'GET /api/repos/labels' => ['ApiController', 'listLabels'],
+    'POST /api/repos/labels' => ['ApiController', 'createLabel'],
+    'GET /api/repos/milestones' => ['ApiController', 'listMilestones'],
+    'POST /api/repos/milestones' => ['ApiController', 'createMilestone'],
+    'GET /api/orgs' => ['ApiController', 'listOrgs'],
+    'POST /api/orgs' => ['ApiController', 'createOrg'],
 ];
 
 // 匹配路由
