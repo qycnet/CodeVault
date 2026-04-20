@@ -103,6 +103,18 @@ const routes: RouteRecordRaw[] = [
     name: 'Settings',
     component: () => import('@/views/Settings.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/orgs',
+    name: 'Organizations',
+    component: () => import('@/views/Organizations.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/orgs/:org',
+    name: 'OrganizationDetail',
+    component: () => import('@/views/OrganizationDetail.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
