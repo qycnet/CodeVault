@@ -122,6 +122,11 @@ $routes = [
     'POST /api/branch-protection' => ['BranchProtectionController', 'create'],
     'PUT /api/branch-protection' => ['BranchProtectionController', 'update'],
     'DELETE /api/branch-protection' => ['BranchProtectionController', 'delete'],
+    
+    // 邮件通知 API
+    'GET /api/notification/settings' => ['NotificationController', 'getSettings'],
+    'PUT /api/notification/settings' => ['NotificationController', 'updateSettings'],
+    'POST /api/notification/test' => ['NotificationController', 'sendTest'],
 ];
 
 // 匹配路由

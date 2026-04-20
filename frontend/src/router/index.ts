@@ -175,6 +175,12 @@ const routes: RouteRecordRaw[] = [
     name: 'BranchProtection',
     component: () => import('@/views/BranchProtection.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings/notifications',
+    name: 'NotificationSettings',
+    component: () => import('@/views/NotificationSettings.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
