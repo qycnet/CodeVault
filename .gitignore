@@ -1,0 +1,36 @@
+# Git 忽略规则
+
+# 文档目录
+docs/
+
+# 依赖目录
+node_modules/
+vendor/
+
+# 构建产物
+dist/
+build/
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+logs/
+
+# 环境配置
+.env
+.env.local
+.env.*.local
+
+# 临时文件
+tmp/
+temp/
+*.tmp
