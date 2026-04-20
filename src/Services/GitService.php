@@ -279,4 +279,42 @@ class GitService
             'commits' => $commits,
         ];
     }
+    
+    /**
+     * 获取分支列表
+     */
+    public static function branches(string $gitPath): array
+    {
+        if (!is_dir($gitPath)) {
+            return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
+        }
+        
+        $cmd = sprintf(
+            'cd %s && git branch -a 2>&1',
+            escapeshellarg($gitPath)
+        );
+        
+        exec($cmd, $output, $returnCode);
+        
+        $branches = [];
+        foreach ($output as $line) {
+            $line = trim($line);
+            // 跳过远程分支和当前分支标记
+            if (empty($line) || strpos($line, 'remotes/') !== false) {
+                continue;
+            }
+            
+            // 移除当前分支标记 (*)
+            $branch = ltrim($line, '* ');
+            
+            if (!empty($branch)) {
+                $branches[] = $branch;
+            }
+        }
+        
+        return [
+            'code' => 200,
+            'data' => $branches
+        ];
+    }
 }

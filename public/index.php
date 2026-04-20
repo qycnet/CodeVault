@@ -74,6 +74,8 @@ $routes = [
     'GET /api/repos/detail' => ['RepositoryController', 'detail'],
     'PUT /api/repos' => ['RepositoryController', 'update'],
     'DELETE /api/repos' => ['RepositoryController', 'delete'],
+    'GET /api/repos/tree' => ['RepositoryController', 'tree'],
+    'GET /api/repos/branches' => ['GitController', 'branches'],
     
     'POST /api/git/clone' => ['GitController', 'clone'],
     'POST /api/git/push' => ['GitController', 'push'],

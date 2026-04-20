@@ -33,6 +33,18 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/repos/:owner/:repo/tree/:branch/:path(.*)?',
+    name: 'FileBrowser',
+    component: () => import('@/views/FileBrowser.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/blob/:branch/:path(.*)?',
+    name: 'FileViewer',
+    component: () => import('@/views/FileBrowser.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/repos/:owner/:repo/issues',
     name: 'IssueList',
     component: () => import('@/views/IssueList.vue'),

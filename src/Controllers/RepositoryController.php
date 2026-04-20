@@ -244,4 +244,164 @@ class RepositoryController
             exec(sprintf('rm -rf %s', escapeshellarg($path)));
         }
     }
+    
+    /**
+     * 获取文件树
+     */
+    public function tree(array $data): array
+    {
+        $user = Session::user();
+        $owner = trim($data['owner'] ?? '');
+        $repoName = trim($data['repo'] ?? '');
+        $branch = trim($data['branch'] ?? 'main');
+        $path = trim($data['path'] ?? '');
+        
+        if (empty($owner) || empty($repoName)) {
+            return ['code' => 400, 'message' => '参数错误'];
+        }
+        
+        // 获取仓库
+        $repo = \CodeVault\Models\Repository::findByOwnerAndName($owner, $repoName);
+        if (!$repo) {
+            return ['code' => 404, 'message' => '仓库不存在'];
+        }
+        
+        // 检查访问权限
+        if ($repo['is_private'] && (!$user || !\CodeVault\Models\Repository::canAccess($repo['id'], $user['id']))) {
+            return ['code' => 403, 'message' => '无权访问'];
+        }
+        
+        $gitPath = $repo['git_path'];
+        if (!is_dir($gitPath)) {
+            return ['code' => 404, 'message' => 'Git 仓库不存在'];
+        }
+        
+        // 获取文件树
+        $result = $this->getGitTree($gitPath, $branch, $path);
+        
+        return [
+            'code' => 200,
+            'data' => $result
+        ];
+    }
+    
+    /**
+     * 获取 Git 文件树
+     */
+    private function getGitTree(string $gitPath, string $branch, string $path): array
+    {
+        // 获取指定分支的最新提交
+        $cmd = sprintf(
+            'cd %s && git rev-parse %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($branch)
+        );
+        exec($cmd, $output, $returnCode);
+        
+        if ($returnCode !== 0) {
+            return ['type' => 'dir', 'files' => []];
+        }
+        
+        $commitHash = trim($output[0]);
+        $treePath = empty($path) ? $commitHash : "$commitHash:$path";
+        
+        // 检查是文件还是目录
+        $cmd = sprintf(
+            'cd %s && git cat-file -t %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($treePath)
+        );
+        exec($cmd, $typeOutput, $typeReturn);
+        
+        $type = trim($typeOutput[0] ?? '');
+        
+        if ($type === 'blob') {
+            // 是文件，返回文件内容
+            $cmd = sprintf(
+                'cd %s && git cat-file -p %s 2>&1',
+                escapeshellarg($gitPath),
+                escapeshellarg($treePath)
+            );
+            exec($cmd, $contentOutput);
+            
+            $content = implode("\n", $contentOutput);
+            $lines = count($contentOutput);
+            $size = strlen($content);
+            
+            return [
+                'type' => 'file',
+                'name' => basename($path),
+                'content' => $content,
+                'lines' => $lines,
+                'size' => $size,
+                'encoding' => 'UTF-8'
+            ];
+        }
+        
+        // 是目录，返回文件列表
+        $cmd = sprintf(
+            'cd %s && git ls-tree %s %s 2>&1',
+            escapeshellarg($gitPath),
+            escapeshellarg($commitHash),
+            escapeshellarg($path)
+        );
+        exec($cmd, $lsOutput);
+        
+        $files = [];
+        foreach ($lsOutput as $line) {
+            if (preg_match('/^(\d+)\s+(\w+)\s+([a-f0-9]+)\s+(.+)$/', $line, $matches)) {
+                $fileMode = $matches[1];
+                $fileType = $matches[2];
+                $fileHash = $matches[3];
+                $fileName = $matches[4];
+                
+                $isDir = ($fileType === 'tree');
+                
+                // 获取文件大小和最后提交信息
+                $fileSize = 0;
+                $lastMessage = '';
+                $lastTime = '';
+                
+                if (!$isDir) {
+                    // 获取文件大小
+                    $cmd = sprintf(
+                        'cd %s && git cat-file -s %s 2>&1',
+                        escapeshellarg($gitPath),
+                        escapeshellarg($fileHash)
+                    );
+                    exec($cmd, $sizeOutput);
+                    $fileSize = (int) ($sizeOutput[0] ?? 0);
+                }
+                
+                // 获取最后提交信息
+                $filePath = empty($path) ? $fileName : "$path/$fileName";
+                $cmd = sprintf(
+                    'cd %s && git log -1 --format="%%s|%%ci" %s -- %s 2>&1',
+                    escapeshellarg($gitPath),
+                    escapeshellarg($commitHash),
+                    escapeshellarg($filePath)
+                );
+                exec($cmd, $logOutput);
+                
+                if (!empty($logOutput[0])) {
+                    $parts = explode('|', $logOutput[0]);
+                    $lastMessage = $parts[0] ?? '';
+                    $lastTime = $parts[1] ?? '';
+                }
+                
+                $files[] = [
+                    'name' => $fileName,
+                    'type' => $isDir ? 'dir' : 'file',
+                    'size' => $fileSize,
+                    'message' => $lastMessage,
+                    'time' => $lastTime
+                ];
+            }
+        }
+        
+        return [
+            'type' => 'dir',
+            'files' => $files
+        ];
+    }
 }

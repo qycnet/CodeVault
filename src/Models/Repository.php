@@ -32,6 +32,17 @@ class Repository
     }
     
     /**
+     * 根据所有者用户名和仓库名查找
+     */
+    public static function findByOwnerAndName(string $ownerName, string $repoName): ?array
+    {
+        return Connection::queryOne(
+            "SELECT r.*, u.username as owner_name FROM repositories r JOIN users u ON r.user_id = u.id WHERE u.username = ? AND r.name = ?",
+            [$ownerName, $repoName]
+        );
+    }
+    
+    /**
      * 获取用户的所有仓库
      */
     public static function findByUserId(int $userId): array

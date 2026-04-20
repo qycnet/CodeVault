@@ -121,4 +121,31 @@ class GitController
         
         return GitService::log($repoId, $user['id'], $limit);
     }
+    
+    /**
+     * 获取分支列表
+     */
+    public function branches(array $data): array
+    {
+        $user = Session::user();
+        $owner = trim($data['owner'] ?? '');
+        $repoName = trim($data['repo'] ?? '');
+        
+        if (empty($owner) || empty($repoName)) {
+            return ['code' => 400, 'message' => '参数错误'];
+        }
+        
+        // 获取仓库
+        $repo = \CodeVault\Models\Repository::findByOwnerAndName($owner, $repoName);
+        if (!$repo) {
+            return ['code' => 404, 'message' => '仓库不存在'];
+        }
+        
+        // 检查访问权限
+        if ($repo['is_private'] && (!$user || !\CodeVault\Models\Repository::canAccess($repo['id'], $user['id']))) {
+            return ['code' => 403, 'message' => '无权访问'];
+        }
+        
+        return GitService::branches($repo['git_path']);
+    }
 }
