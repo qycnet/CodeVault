@@ -58,16 +58,24 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
-  const token = localStorage.getItem('token')
+router.beforeEach(async (to, _from, next) => {
+  const userStore = (await import('@/stores/user')).useUserStore()
   
-  if (to.meta.requiresAuth && !token) {
-    next('/login')
-  } else if (!to.meta.requiresAuth && token && (to.path === '/login' || to.path === '/register')) {
-    next('/')
-  } else {
-    next()
+  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+    // 尝试获取用户信息
+    await userStore.fetchUser()
+    if (!userStore.isLoggedIn) {
+      next('/login')
+      return
+    }
   }
+  
+  if (!to.meta.requiresAuth && userStore.isLoggedIn && (to.path === '/login' || to.path === '/register')) {
+    next('/')
+    return
+  }
+  
+  next()
 })
 
 export default router
