@@ -158,6 +158,22 @@ $routes = [
     'POST /api/actions/trigger' => ['ActionsController', 'triggerWorkflow'],
     'POST /api/actions/rerun' => ['ActionsController', 'rerun'],
     'POST /api/actions/cancel' => ['ActionsController', 'cancelRun'],
+    
+    // Diff API
+    'GET /api/diff/compare' => ['DiffController', 'compare'],
+    'GET /api/diff/file' => ['DiffController', 'fileDiff'],
+    'GET /api/diff/pr' => ['DiffController', 'prDiff'],
+    'GET /api/diff/commit' => ['DiffController', 'commitDiff'],
+    'GET /api/diff/content' => ['DiffController', 'fileContent'],
+    
+    // Review API
+    'GET /api/reviews' => ['ReviewController', 'listReviews'],
+    'POST /api/reviews' => ['ReviewController', 'createReview'],
+    'PUT /api/reviews' => ['ReviewController', 'submitReview'],
+    'GET /api/reviews/line-comments' => ['ReviewController', 'listLineComments'],
+    'POST /api/reviews/line-comments' => ['ReviewController', 'createLineComment'],
+    'PUT /api/reviews/line-comments' => ['ReviewController', 'updateLineComment'],
+    'DELETE /api/reviews/line-comments' => ['ReviewController', 'deleteLineComment'],
 ];
 
 // 匹配路由
