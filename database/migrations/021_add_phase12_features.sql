@@ -89,11 +89,14 @@ CREATE TABLE IF NOT EXISTS `repo_integrations` (
 -- ==================== 数据分析 ====================
 
 -- 安全扫描结果表（增强）
-ALTER TABLE `security_scans` 
-ADD COLUMN IF NOT EXISTS `critical_count` INT UNSIGNED DEFAULT 0 COMMENT '严重漏洞数',
-ADD COLUMN IF NOT EXISTS `high_count` INT UNSIGNED DEFAULT 0 COMMENT '高危漏洞数',
-ADD COLUMN IF NOT EXISTS `medium_count` INT UNSIGNED DEFAULT 0 COMMENT '中危漏洞数',
-ADD COLUMN IF NOT EXISTS `low_count` INT UNSIGNED DEFAULT 0 COMMENT '低危漏洞数';
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE `security_scans` 
+-- ADD COLUMN `critical_count` INT UNSIGNED DEFAULT 0 COMMENT '严重漏洞数',
+-- ADD COLUMN `high_count` INT UNSIGNED DEFAULT 0 COMMENT '高危漏洞数',
+-- ADD COLUMN `medium_count` INT UNSIGNED DEFAULT 0 COMMENT '中危漏洞数',
+-- ADD COLUMN `low_count` INT UNSIGNED DEFAULT 0 COMMENT '低危漏洞数';
 
 -- 代码审查统计表
 CREATE TABLE IF NOT EXISTS `code_review_stats` (
@@ -173,16 +176,22 @@ CREATE TABLE IF NOT EXISTS `issue_resolve_stats` (
 -- ==================== 用户表扩展 ====================
 
 -- 添加关注统计字段
-ALTER TABLE `users` 
-ADD COLUMN IF NOT EXISTS `followers_count` INT UNSIGNED DEFAULT 0 COMMENT '粉丝数',
-ADD COLUMN IF NOT EXISTS `following_count` INT UNSIGNED DEFAULT 0 COMMENT '关注数';
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE `users` 
+-- ADD COLUMN `followers_count` INT UNSIGNED DEFAULT 0 COMMENT '粉丝数',
+-- ADD COLUMN `following_count` INT UNSIGNED DEFAULT 0 COMMENT '关注数';
 
 -- ==================== 索引优化 ====================
 
 -- 为现有表添加索引
-CREATE INDEX IF NOT EXISTS `idx_pr_merged_at` ON `pull_requests` (`merged_at`);
-CREATE INDEX IF NOT EXISTS `idx_issues_closed_at` ON `issues` (`closed_at`);
-CREATE INDEX IF NOT EXISTS `idx_commits_created_at` ON `commits` (`created_at`);
+-- 注意：CREATE INDEX IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- CREATE INDEX `idx_pr_merged_at` ON `pull_requests` (`merged_at`);
+-- CREATE INDEX `idx_issues_closed_at` ON `issues` (`closed_at`);
+-- CREATE INDEX `idx_commits_created_at` ON `commits` (`created_at`);
 
 -- ==================== 初始数据 ====================
 

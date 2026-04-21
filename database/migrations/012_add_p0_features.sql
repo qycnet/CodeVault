@@ -100,4 +100,7 @@ CREATE TABLE IF NOT EXISTS workflow_schedule_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工作流调度日志';
 
 -- 为 workflow_runs 添加 event 字段（如果不存在）
-ALTER TABLE workflow_runs ADD COLUMN IF NOT EXISTS event VARCHAR(50) DEFAULT 'push' COMMENT '触发事件';
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE workflow_runs ADD COLUMN event VARCHAR(50) DEFAULT 'push' COMMENT '触发事件';

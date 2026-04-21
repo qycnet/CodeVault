@@ -15,8 +15,11 @@ CREATE TABLE IF NOT EXISTS translations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 用户语言偏好
-ALTER TABLE users ADD COLUMN IF NOT EXISTS locale VARCHAR(10) DEFAULT 'zh-CN';
-ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone VARCHAR(50) DEFAULT 'Asia/Shanghai';
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE users ADD COLUMN locale VARCHAR(10) DEFAULT 'zh-CN';
+-- ALTER TABLE users ADD COLUMN timezone VARCHAR(50) DEFAULT 'Asia/Shanghai';
 
 -- 性能日志表
 CREATE TABLE IF NOT EXISTS performance_logs (

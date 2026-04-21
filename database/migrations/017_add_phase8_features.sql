@@ -130,10 +130,13 @@ CREATE TABLE IF NOT EXISTS `wiki_toc` (
 -- ============================================
 
 -- 更新 webhooks 表添加新字段
-ALTER TABLE `webhooks` 
-ADD COLUMN IF NOT EXISTS `content_type` ENUM('json', 'form') DEFAULT 'json' AFTER `events`,
-ADD COLUMN IF NOT EXISTS `created_by` INT NULL AFTER `active`,
-ADD COLUMN IF NOT EXISTS `last_triggered_at` DATETIME NULL AFTER `created_at`;
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE `webhooks` 
+-- ADD COLUMN `content_type` ENUM('json', 'form') DEFAULT 'json' AFTER `events`,
+-- ADD COLUMN `created_by` INT NULL AFTER `active`,
+-- ADD COLUMN `last_triggered_at` DATETIME NULL AFTER `created_at`;
 
 -- Webhook 投递日志
 CREATE TABLE IF NOT EXISTS `webhook_deliveries` (

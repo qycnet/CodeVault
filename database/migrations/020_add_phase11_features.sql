@@ -64,10 +64,13 @@ CREATE TABLE IF NOT EXISTS `pages_domains` (
 -- ============================================
 
 -- 添加 Gist 访问控制
-ALTER TABLE `gists` ADD COLUMN IF NOT EXISTS `access_level` ENUM('public', 'unlisted', 'private') DEFAULT 'public' AFTER `visibility`;
-ALTER TABLE `gists` ADD COLUMN IF NOT EXISTS `password_hash` VARCHAR(255) NULL AFTER `access_level`;
-ALTER TABLE `gists` ADD COLUMN IF NOT EXISTS `expires_at` DATETIME NULL AFTER `password_hash`;
-ALTER TABLE `gists` ADD COLUMN IF NOT EXISTS `view_count` BIGINT DEFAULT 0 AFTER `expires_at`;
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE `gists` ADD COLUMN `access_level` ENUM('public', 'unlisted', 'private') DEFAULT 'public' AFTER `visibility`;
+-- ALTER TABLE `gists` ADD COLUMN `password_hash` VARCHAR(255) NULL AFTER `access_level`;
+-- ALTER TABLE `gists` ADD COLUMN `expires_at` DATETIME NULL AFTER `password_hash`;
+-- ALTER TABLE `gists` ADD COLUMN `view_count` BIGINT DEFAULT 0 AFTER `expires_at`;
 
 -- Gist 嵌入代码
 CREATE TABLE IF NOT EXISTS `gist_embeds` (
@@ -86,9 +89,12 @@ CREATE TABLE IF NOT EXISTS `gist_embeds` (
 -- ============================================
 
 -- Wiki 富文本编辑
-ALTER TABLE `wiki_pages` ADD COLUMN IF NOT EXISTS `format` ENUM('markdown', 'html', 'asciidoc') DEFAULT 'markdown' AFTER `content`;
-ALTER TABLE `wiki_pages` ADD COLUMN IF NOT EXISTS `word_count` INT DEFAULT 0 AFTER `format`;
-ALTER TABLE `wiki_pages` ADD COLUMN IF NOT EXISTS `reading_time` INT DEFAULT 0 AFTER `word_count`;
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE `wiki_pages` ADD COLUMN `format` ENUM('markdown', 'html', 'asciidoc') DEFAULT 'markdown' AFTER `content`;
+-- ALTER TABLE `wiki_pages` ADD COLUMN `word_count` INT DEFAULT 0 AFTER `format`;
+-- ALTER TABLE `wiki_pages` ADD COLUMN `reading_time` INT DEFAULT 0 AFTER `word_count`;
 
 -- Wiki 目录
 CREATE TABLE IF NOT EXISTS `wiki_toc` (
@@ -132,15 +138,18 @@ CREATE TABLE IF NOT EXISTS `wiki_attachments` (
 -- ============================================
 
 -- Webhook 事件筛选
-ALTER TABLE `webhooks` ADD COLUMN IF NOT EXISTS `events` JSON AFTER `active`;
-ALTER TABLE `webhooks` ADD COLUMN IF NOT EXISTS `content_type` VARCHAR(50) DEFAULT 'json' AFTER `events`;
-ALTER TABLE `webhooks` ADD COLUMN IF NOT EXISTS `secret` VARCHAR(255) NULL AFTER `content_type`;
-ALTER TABLE `webhooks` ADD COLUMN IF NOT EXISTS `insecure_ssl` TINYINT(1) DEFAULT 0 AFTER `secret`;
+-- 注意：ADD COLUMN IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- ALTER TABLE `webhooks` ADD COLUMN `events` JSON AFTER `active`;
+-- ALTER TABLE `webhooks` ADD COLUMN `content_type` VARCHAR(50) DEFAULT 'json' AFTER `events`;
+-- ALTER TABLE `webhooks` ADD COLUMN `secret` VARCHAR(255) NULL AFTER `content_type`;
+-- ALTER TABLE `webhooks` ADD COLUMN `insecure_ssl` TINYINT(1) DEFAULT 0 AFTER `secret`;
 
 -- Webhook 重试配置
-ALTER TABLE `webhook_deliveries` ADD COLUMN IF NOT EXISTS `retry_count` INT DEFAULT 0 AFTER `response_headers`;
-ALTER TABLE `webhook_deliveries` ADD COLUMN IF NOT EXISTS `max_retries` INT DEFAULT 3 AFTER `retry_count`;
-ALTER TABLE `webhook_deliveries` ADD COLUMN IF NOT EXISTS `next_retry_at` DATETIME NULL AFTER `max_retries`;
+-- ALTER TABLE `webhook_deliveries` ADD COLUMN `retry_count` INT DEFAULT 0 AFTER `response_headers`;
+-- ALTER TABLE `webhook_deliveries` ADD COLUMN `max_retries` INT DEFAULT 3 AFTER `retry_count`;
+-- ALTER TABLE `webhook_deliveries` ADD COLUMN `next_retry_at` DATETIME NULL AFTER `max_retries`;
 
 -- Webhook 签名验证日志
 CREATE TABLE IF NOT EXISTS `webhook_signatures` (
@@ -171,8 +180,11 @@ CREATE TABLE IF NOT EXISTS `webhook_events` (
 -- ============================================
 
 -- 优化查询性能
-CREATE INDEX IF NOT EXISTS `idx_pages_sites_status` ON `pages_sites` (`status`, `updated_at`);
-CREATE INDEX IF NOT EXISTS `idx_pages_deployments_status` ON `pages_deployments` (`site_id`, `status`, `created_at`);
-CREATE INDEX IF NOT EXISTS `idx_gists_user_created` ON `gists` (`user_id`, `created_at`);
-CREATE INDEX IF NOT EXISTS `idx_wiki_pages_wiki_updated` ON `wiki_pages` (`wiki_id`, `updated_at`);
-CREATE INDEX IF NOT EXISTS `idx_webhook_deliveries_webhook_created` ON `webhook_deliveries` (`webhook_id`, `created_at`);
+-- 注意：CREATE INDEX IF NOT EXISTS 在 MySQL 5.7/8.0 不支持
+-- 请使用 022_mysql_compatibility_fix.sql 中的存储过程
+-- 或直接执行以下语句（首次部署）：
+-- CREATE INDEX `idx_pages_sites_status` ON `pages_sites` (`status`, `updated_at`);
+-- CREATE INDEX `idx_pages_deployments_status` ON `pages_deployments` (`site_id`, `status`, `created_at`);
+-- CREATE INDEX `idx_gists_user_created` ON `gists` (`user_id`, `created_at`);
+-- CREATE INDEX `idx_wiki_pages_wiki_updated` ON `wiki_pages` (`wiki_id`, `updated_at`);
+-- CREATE INDEX `idx_webhook_deliveries_webhook_created` ON `webhook_deliveries` (`webhook_id`, `created_at`);
