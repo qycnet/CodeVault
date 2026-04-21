@@ -182,3 +182,41 @@ CREATE TABLE IF NOT EXISTS sponsor_stats (
     UNIQUE KEY uk_user (user_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 支付安全表
+CREATE TABLE IF NOT EXISTS payment_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    payment_id VARCHAR(128) NOT NULL,
+    payment_method VARCHAR(20) NOT NULL,
+    request_data TEXT,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(500),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_payment_id (payment_id, payment_method),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS payment_nonces (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nonce VARCHAR(64) NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 支付配置表
+CREATE TABLE IF NOT EXISTS payment_configs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    payment_method VARCHAR(20) NOT NULL UNIQUE,
+    config_name VARCHAR(100) NOT NULL,
+    config_value TEXT,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 插入默认支付配置
+INSERT INTO payment_configs (payment_method, config_name, config_value) VALUES
+('alipay', '支付宝', '{"app_id": "", "public_key": "", "private_key": "", "notify_url": ""}'),
+('wechat', '微信支付', '{"app_id": "", "mch_id": "", "api_key": "", "notify_url": ""}'),
+('stripe', 'Stripe', '{"publishable_key": "", "secret_key": "", "webhook_secret": ""}'),
+('paypal', 'PayPal', '{"client_id": "", "client_secret": "", "mode": "sandbox"}');
