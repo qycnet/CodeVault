@@ -269,6 +269,28 @@
 
 ---
 
+### Phase 12: 可选扩展功能 ✅ NEW
+
+#### 社交功能增强
+- ✅ **关注/粉丝系统**：关注用户、粉丝列表
+- ✅ **Star 排行榜**：按时间段统计仓库排名
+- ✅ **开发者活跃度榜单**：活跃度分数计算
+- ✅ **动态信息流**：Following Feed、全站动态
+
+#### 第三方集成
+- ✅ **第三方登录**：微信、QQ OAuth 登录
+- ✅ **Slack 集成**：Webhook 通知推送
+- ✅ **钉钉集成**：Webhook 通知推送
+- ✅ **VS Code 插件**：Token 生成、配置支持
+
+#### 数据分析增强
+- ✅ **代码质量趋势**：安全扫描分数、质量等级
+- ✅ **团队效率分析**：贡献者效率分数、协作网络
+- ✅ **PR 合并时间统计**：分布、趋势、最快/最慢
+- ✅ **Issue 解决时间分析**：分布、趋势、标签统计
+
+---
+
 ## 技术栈
 
 | 层级 | 技术选型 | 版本要求 |
@@ -311,7 +333,7 @@
 codevault/
 ├── config/                 # 配置文件
 ├── database/
-│   ├── migrations/        # 数据库迁移 (001-020)
+│   ├── migrations/        # 数据库迁移 (001-021)
 │   ├── migrate.php        # 迁移脚本
 │   └── schema.sql         # 完整表结构
 ├── frontend/              # Vue 3 前端项目
@@ -352,6 +374,9 @@ codevault/
 │   │   ├── SsoService.php             # Phase 10
 │   │   ├── ContainerRegistryService.php # Phase 10
 │   │   ├── PagesService.php           # Phase 11
+│   │   ├── SocialService.php          # Phase 12
+│   │   ├── IntegrationService.php     # Phase 12
+│   │   ├── AnalyticsService.php       # Phase 12
 │   │   └── ...
 │   └── Core/              # 核心组件
 │       ├── ErrorHandler.php
@@ -520,6 +545,39 @@ composer install
 | POST | /api/pages/:id/domains | 添加域名 |
 | POST | /api/pages/domains/:id/verify | 验证域名 |
 
+### 社交功能（Phase 12）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/social/follow | 关注用户 |
+| DELETE | /api/social/follow | 取消关注 |
+| GET | /api/social/following | 关注列表 |
+| GET | /api/social/followers | 粉丝列表 |
+| GET | /api/social/feed | 动态信息流 |
+| GET | /api/social/ranking/stars | Star 排行榜 |
+| GET | /api/social/ranking/developers | 开发者榜单 |
+
+### 第三方集成（Phase 12）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/integration/auth-url | 获取授权链接 |
+| GET | /api/integration/callback | OAuth 回调 |
+| POST | /api/integration/bind | 绑定第三方账号 |
+| POST | /api/integration/slack | 配置 Slack |
+| POST | /api/integration/dingtalk | 配置钉钉 |
+| POST | /api/integration/vscode-token | 生成 VS Code Token |
+
+### 数据分析（Phase 12）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/analytics/code-quality | 代码质量趋势 |
+| GET | /api/analytics/team-efficiency | 团队效率分析 |
+| GET | /api/analytics/pr-merge-time | PR 合并时间统计 |
+| GET | /api/analytics/issue-resolve-time | Issue 解决时间分析 |
+| GET | /api/analytics/report | 综合分析报告 |
+
 ---
 
 ## 功能完成度
@@ -535,6 +593,7 @@ composer install
 | Phase 9 | 开发者体验 | ✅ 100% |
 | **Phase 10** | **企业级功能** | **✅ 100%** |
 | **Phase 11** | **协作增强** | **✅ 100%** |
+| **Phase 12** | **可选扩展** | **✅ 100%** |
 
 ---
 
@@ -548,7 +607,7 @@ composer install
 ✅ Phase 9    ──► 开发者体验（导入导出/统计/API文档）
 ✅ Phase 10   ──► 企业级功能（SSO/审计/容器仓库/多租户/合规/高可用）
 ✅ Phase 11   ──► 协作增强（Pages/Gists增强/Wiki增强/Webhooks增强）
-📋 未来规划   ──► 可选扩展（社交功能/第三方集成/数据分析/移动App）
+✅ Phase 12   ──► 可选扩展（社交功能/第三方集成/数据分析）
 ```
 
 ---
