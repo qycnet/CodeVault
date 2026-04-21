@@ -65,7 +65,7 @@
               <span>{{ item.repo_name || '' }}{{ item.file }}</span>
               <span class="line-num">:{{ item.line }}</span>
             </div>
-            <pre class="code-content" v-html="item.highlight"></pre>
+            <pre class="code-content">{{ item.content }}</pre>
           </div>
           <el-empty v-if="results.code.length === 0" description="未找到相关代码" />
         </div>

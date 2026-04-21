@@ -62,8 +62,21 @@ class FileController
             return ['success' => false, 'message' => '文件名只能包含字母、数字、下划线、连字符和点'];
         }
         
-        // 安全检查：危险文件类型
-        $dangerousExtensions = ['php', 'phtml', 'php3', 'php4', 'php5', 'phar', 'exe', 'bat', 'cmd', 'sh'];
+        // 安全检查：危险文件类型（扩展黑名单）
+        $dangerousExtensions = [
+            // PHP 相关
+            'php', 'phtml', 'php3', 'php4', 'php5', 'phar',
+            // 服务器端脚本
+            'jsp', 'asp', 'aspx', 'ashx', 'asmx', 'axd',
+            // 可执行文件
+            'exe', 'bat', 'cmd', 'sh', 'bash', 'ps1', 'vbs',
+            // Web 配置
+            'htaccess', 'htpasswd',
+            // 可能包含 XSS 的文件
+            'html', 'htm', 'svg', 'js',
+            // 其他危险类型
+            'shtml', 'ssi', 'pl', 'cgi', 'py'
+        ];
         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         if (in_array($ext, $dangerousExtensions)) {
             return ['success' => false, 'message' => '不允许上传此类型的文件'];

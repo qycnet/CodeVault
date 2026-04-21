@@ -85,6 +85,16 @@ class ActionsController
             return ['success' => false, 'message' => '参数错误'];
         }
         
+        // 检查仓库权限
+        $repo = Connection::queryOne("SELECT * FROM repositories WHERE id = ?", [$repoId]);
+        if (!$repo) {
+            return ['success' => false, 'message' => '仓库不存在'];
+        }
+        
+        if ($repo['user_id'] !== $user['id']) {
+            return ['success' => false, 'message' => '无权操作此仓库'];
+        }
+        
         // 验证 YAML 配置
         $parsed = yaml_parse($config);
         if (!$parsed) {

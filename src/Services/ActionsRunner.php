@@ -220,13 +220,31 @@ class ActionsRunner
             $line = trim($line);
             if (empty($line)) continue;
             
+            // 安全检查：只允许安全的命令
+            $safeCommands = ['git', 'npm', 'node', 'yarn', 'pnpm', 'composer', 'php', 'make', 'echo', 'mkdir', 'cp', 'mv', 'rm', 'ls', 'cat'];
+            $isSafe = false;
+            foreach ($safeCommands as $cmd) {
+                if (preg_match('/^' . preg_quote($cmd, '/') . '\b/i', $line)) {
+                    $isSafe = true;
+                    break;
+                }
+            }
+            
+            if (!$isSafe) {
+                $log[] = "Error: Command not allowed: {$line}";
+                continue;
+            }
+            
             $log[] = "$ {$line}";
+            
+            // 安全转义命令参数
+            $escapedLine = escapeshellcmd($line);
             
             $cmd = sprintf(
                 'cd %s && %s %s 2>&1',
                 escapeshellarg($repoDir),
                 $envStr,
-                $line
+                $escapedLine
             );
             
             exec($cmd, $output, $returnCode);
