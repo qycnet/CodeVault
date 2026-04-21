@@ -166,6 +166,57 @@ $routes = [
     
     // 用户资料 API
     'PUT /api/user/profile' => ['ApiController', 'updateProfile'],
+    
+    // P1 功能 API
+    // 安全扫描
+    'POST /api/security/scan' => ['SecurityController', 'scan'],
+    'GET /api/security/history' => ['SecurityController', 'getHistory'],
+    
+    // 代码审查增强
+    'POST /api/reviews' => ['ReviewController', 'submit'],
+    'POST /api/reviews/batch-comments' => ['ReviewController', 'batchComments'],
+    'GET /api/reviews' => ['ReviewController', 'list'],
+    'GET /api/reviews/stats' => ['ReviewController', 'stats'],
+    
+    // 团队管理
+    'POST /api/teams' => ['TeamController', 'create'],
+    'GET /api/teams' => ['TeamController', 'list'],
+    'PUT /api/teams' => ['TeamController', 'update'],
+    'DELETE /api/teams' => ['TeamController', 'delete'],
+    'POST /api/teams/members' => ['TeamController', 'addMember'],
+    'DELETE /api/teams/members' => ['TeamController', 'removeMember'],
+    'GET /api/teams/members' => ['TeamController', 'listMembers'],
+    'POST /api/teams/repos' => ['TeamController', 'addRepo'],
+    'DELETE /api/teams/repos' => ['TeamController', 'removeRepo'],
+    'GET /api/teams/repos' => ['TeamController', 'listRepos'],
+    'POST /api/teams/batch-permission' => ['TeamController', 'batchAssignPermission'],
+    
+    // 高级搜索
+    'GET /api/search/advanced' => ['SearchController', 'advanced'],
+    
+    // 管理后台
+    'GET /api/admin/dashboard' => ['AdminController', 'dashboard'],
+    'GET /api/admin/users' => ['AdminController', 'listUsers'],
+    'POST /api/admin/users/toggle' => ['AdminController', 'toggleUser'],
+    'POST /api/admin/users/admin' => ['AdminController', 'setAdmin'],
+    'GET /api/admin/repos' => ['AdminController', 'listRepos'],
+    'DELETE /api/admin/repos' => ['AdminController', 'deleteRepo'],
+    'GET /api/admin/logs' => ['AdminController', 'getLogs'],
+    'GET /api/admin/config' => ['AdminController', 'getConfig'],
+    'PUT /api/admin/config' => ['AdminController', 'updateConfig'],
+    'POST /api/admin/cleanup' => ['AdminController', 'cleanup'],
+    
+    // P2 功能 API
+    // 仓库模板
+    'POST /api/templates/create' => ['TemplateController', 'createFromTemplate'],
+    'POST /api/templates/set' => ['TemplateController', 'setAsTemplate'],
+    'GET /api/templates' => ['TemplateController', 'listTemplates'],
+    'GET /api/templates/official' => ['TemplateController', 'getOfficialTemplates'],
+    
+    // Issue/PR 模板
+    'GET /api/issue-templates' => ['IssueTemplateController', 'getIssueTemplates'],
+    'POST /api/issue-templates' => ['IssueTemplateController', 'saveIssueTemplate'],
+    'GET /api/pr-template' => ['IssueTemplateController', 'getPRTemplate'],
     'GET /api/user/stars' => ['StarController', 'listUserStars'],
     
     // Star API
