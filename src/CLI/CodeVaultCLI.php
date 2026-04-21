@@ -454,13 +454,19 @@ HELP;
             $cloneUrl = $repo;
         }
         
-        // 执行 git clone
-        $cmd = "git clone {$cloneUrl}";
-        if ($directory) {
-            $cmd .= " {$directory}";
+        // 安全验证 URL
+        if (!preg_match('#^(https?|git|ssh)://#', $cloneUrl) && !preg_match('#^[\w-]+@#', $cloneUrl)) {
+            echo "错误: 无效的克隆 URL\n";
+            return 1;
         }
         
-        echo "执行: {$cmd}\n";
+        // 执行 git clone（使用 escapeshellarg 防止命令注入）
+        $cmd = "git clone " . escapeshellarg($cloneUrl);
+        if ($directory) {
+            $cmd .= " " . escapeshellarg($directory);
+        }
+        
+        echo "执行: git clone ...\n";
         passthru($cmd, $returnCode);
         
         return $returnCode;
@@ -1188,8 +1194,10 @@ HELP;
         $tempFile = tempnam(sys_get_temp_dir(), 'cv_');
         file_put_contents($tempFile, "# {$prompt}\n# (保存并关闭编辑器继续)\n");
         
-        $editor = $_SERVER['EDITOR'] ?? 'nano';
-        system("{$editor} {$tempFile}");
+        // 安全获取编辑器路径
+        $editor = escapeshellcmd($_SERVER['EDITOR'] ?? 'nano');
+        $cmd = $editor . " " . escapeshellarg($tempFile);
+        system($cmd);
         
         $content = file_get_contents($tempFile);
         unlink($tempFile);
