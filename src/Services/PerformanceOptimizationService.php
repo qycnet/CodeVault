@@ -10,7 +10,7 @@
  * - CDN 集成
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use PDO;
 use Redis;

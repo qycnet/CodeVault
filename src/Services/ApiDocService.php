@@ -9,7 +9,7 @@
  * - 生成 Swagger UI
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;

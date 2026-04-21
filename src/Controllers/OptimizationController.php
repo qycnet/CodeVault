@@ -3,7 +3,7 @@
  * CodeVault 性能与优化 API 控制器
  */
 
-namespace Controllers;
+namespace CodeVault\Controllers;
 
 use Services\PerformanceOptimizationService;
 use Services\CodeHighlightService;

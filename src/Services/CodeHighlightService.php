@@ -10,7 +10,7 @@
  * - 主题切换
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 class CodeHighlightService
 {

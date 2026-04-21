@@ -9,7 +9,7 @@
  * - 移动端性能优化
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 class MobileAdaptationService
 {

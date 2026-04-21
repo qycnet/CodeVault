@@ -9,7 +9,7 @@
  * - Issue 解决时间分析
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;

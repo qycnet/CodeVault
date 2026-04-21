@@ -10,7 +10,7 @@
  * - CSRF 防护
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 class SecurityService
 {

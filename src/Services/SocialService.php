@@ -9,7 +9,7 @@
  * - 动态信息流（Following Feed）
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;

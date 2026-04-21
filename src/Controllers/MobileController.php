@@ -3,7 +3,7 @@
  * CodeVault 移动端 API 控制器
  */
 
-namespace Controllers;
+namespace CodeVault\Controllers;
 
 use Services\MobileAdaptationService;
 use Core\Logger;

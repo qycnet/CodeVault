@@ -10,7 +10,7 @@
  * - 访问控制
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;

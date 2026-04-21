@@ -11,7 +11,7 @@
  * - 失败队列
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;

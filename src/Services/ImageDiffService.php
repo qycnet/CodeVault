@@ -9,7 +9,7 @@
  * - 文件类型检测
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 class ImageDiffService
 {

@@ -17,7 +17,7 @@
  * - GET    /api/gists/{id}/versions/{version} - 获取版本
  */
 
-namespace Controllers;
+namespace CodeVault\Controllers;
 
 use Core\Controller;
 use Core\Request;

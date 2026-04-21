@@ -8,7 +8,7 @@
  * - VS Code 插件支持
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;

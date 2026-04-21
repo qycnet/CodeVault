@@ -10,7 +10,7 @@
  * - Wiki 导入/导出
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;

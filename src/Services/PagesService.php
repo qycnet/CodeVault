@@ -10,7 +10,7 @@
  * - 版本管理
  */
 
-namespace Services;
+namespace CodeVault\Services;
 
 use Core\Database;
 use Core\Logger;
