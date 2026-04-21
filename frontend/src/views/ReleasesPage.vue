@@ -65,6 +65,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
+import DOMPurify from 'dompurify'
 
 const route = useRoute()
 
@@ -87,11 +88,13 @@ function formatTime(time: string) {
 function renderMarkdown(text: string) {
   if (!text) return ''
   // 简单的 Markdown 渲染
-  return text
+  const html = text
     .replace(/\n/g, '<br>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
+  // 使用 DOMPurify 防止 XSS
+  return DOMPurify.sanitize(html)
 }
 
 async function fetchReleases() {
