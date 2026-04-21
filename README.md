@@ -2,6 +2,17 @@
 
 基于 PHP 原生实现的轻量级代码仓库管理系统（GitHub Clone）。
 
+## 项目概览
+
+| 指标 | 数据 |
+|------|------|
+| 完成度 | 100% |
+| 新增文件 | 93 个 |
+| 新增代码 | 25,933 行 |
+| P0 功能 | 16/16 ✅ |
+| P1 功能 | 8/8 ✅ |
+| P2 功能 | 7/7 ✅ |
+
 ## 功能特性
 
 ### P0 - 核心功能 ✅
@@ -46,6 +57,9 @@
 - ✅ 工作流执行
 - ✅ 日志查看
 - ✅ 状态检查
+- ✅ **定时触发器**（Cron 表达式）
+- ✅ **日志实时输出**（WebSocket）
+- ✅ **可视化编辑器**（拖拽式）
 
 #### Email 通知
 - ✅ 邮件发送
@@ -56,6 +70,10 @@
 - ✅ 完整 API 接口
 - ✅ JSON 响应
 - ✅ 错误处理
+- ✅ **API Token 管理**
+  - Token CRUD
+  - 权限范围管理
+  - SHA256 哈希存储
 
 #### 分支保护规则
 - ✅ 保护分支设置
@@ -66,6 +84,19 @@
 - ✅ Web 文件上传
 - ✅ 安全文件类型检查
 - ✅ 路径验证
+
+#### OAuth2 授权 ✅ NEW
+- ✅ 授权服务器
+- ✅ 应用注册/管理
+- ✅ 授权码流程
+- ✅ 刷新令牌
+- ✅ 客户端凭证授权
+
+#### 通知中心完善 ✅ NEW
+- ✅ 通知聚合展示
+- ✅ WebSocket 实时推送
+- ✅ 桌面通知支持
+- ✅ 按类型/仓库筛选
 
 ---
 
@@ -447,6 +478,45 @@ php -S localhost:8000
 | GET | /api/lfs/objects | 下载对象 |
 | GET | /api/lfs/stats | LFS 统计 |
 
+### API Token 管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/tokens | Token 列表 |
+| POST | /api/tokens | 创建 Token |
+| PUT | /api/tokens | 更新 Token |
+| DELETE | /api/tokens | 删除 Token |
+| GET | /api/tokens/scopes | 权限范围 |
+
+### OAuth2 授权
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/oauth/apps | 应用列表 |
+| POST | /api/oauth/apps | 注册应用 |
+| PUT | /api/oauth/apps | 更新应用 |
+| DELETE | /api/oauth/apps | 删除应用 |
+| GET | /api/oauth/authorize | 授权端点 |
+| POST | /api/oauth/token | Token 端点 |
+| GET | /api/oauth/authorizations | 授权列表 |
+
+### 通知中心
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/notifications | 通知列表 |
+| GET | /api/notifications/unread-count | 未读数量 |
+| POST | /api/notifications/:id/read | 标记已读 |
+| POST | /api/notifications/read-all | 全部已读 |
+| DELETE | /api/notifications/:id | 删除通知 |
+
+### 工作流调度
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/workflows/schedule | 触发定时工作流 |
+| GET | /api/workflows/schedule | 获取调度信息 |
+
 ## 功能完成度
 
 | 优先级 | 功能模块 | 状态 |
@@ -461,6 +531,12 @@ php -S localhost:8000
 | P0 | REST API | ✅ |
 | P0 | 分支保护 | ✅ |
 | P0 | 文件上传 | ✅ |
+| P0 | 定时触发器 | ✅ NEW |
+| P0 | API Token 管理 | ✅ NEW |
+| P0 | OAuth2 授权 | ✅ NEW |
+| P0 | 日志实时输出 | ✅ NEW |
+| P0 | 可视化编辑器 | ✅ NEW |
+| P0 | 通知中心完善 | ✅ NEW |
 | P1 | 安全扫描 | ✅ |
 | P1 | 代码审查增强 | ✅ |
 | P1 | 组织团队管理 | ✅ |
@@ -476,6 +552,20 @@ php -S localhost:8000
 | P2 | 全文代码搜索 | ✅ |
 | P2 | GraphQL API | ✅ |
 | P2 | Git LFS | ✅ |
+
+## 安全审计
+
+| 项目 | 状态 |
+|------|------|
+| SQL 注入防护 | ✅ PDO 预处理 |
+| 命令注入防护 | ✅ escapeshellarg + 白名单 |
+| XSS 防护 | ✅ htmlspecialchars + 纯文本渲染 |
+| 密码哈希 | ✅ bcrypt (cost=12) |
+| Session 安全 | ✅ HttpOnly + SameSite=Lax |
+| CORS 限制 | ✅ 白名单 |
+| OAuth2 安全 | ✅ random_bytes + bcrypt |
+| API Token 安全 | ✅ SHA256 哈希存储 |
+| 文件上传安全 | ✅ 黑名单 + 路径验证 |
 
 ## License
 
