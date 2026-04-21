@@ -255,7 +255,69 @@ class AuditService
             json_encode($data),
         ]);
         
-        // TODO: 发送通知（邮件/Slack/钉钉等）
+        // 发送通知
+        $this->sendAlertNotification($type, $event, $action, $data);
+    }
+    
+    /**
+     * 发送告警通知
+     */
+    private function sendAlertNotification(string $type, string $event, string $action, array $data): void
+    {
+        $alertConfig = $_ENV['ALERT_CONFIG'] ?? null;
+        if (!$alertConfig) {
+            return;
+        }
+        
+        $config = json_decode($alertConfig, true);
+        if (!$config) {
+            return;
+        }
+        
+        $message = sprintf(
+            '[%s] %s - %s (用户: %s, IP: %s)',
+            strtoupper($type),
+            $event,
+            $action,
+            $data['user_id'] ?? 'unknown',
+            $data['ip_address'] ?? 'unknown'
+        );
+        
+        // 邮件通知
+        if (!empty($config['email'])) {
+            $mailer = new Mailer();
+            $mailer->send(
+                $config['email'],
+                "[CodeVault 安全告警] {$event}",
+                $message,
+                ['html' => false]
+            );
+        }
+        
+        // Webhook 通知（Slack/钉钉等）
+        if (!empty($config['webhook_url'])) {
+            $payload = json_encode([
+                'text' => $message,
+                'attachments' => [
+                    [
+                        'title' => '安全告警',
+                        'text' => json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+                        'color' => $type === 'critical' ? 'danger' : 'warning',
+                    ]
+                ]
+            ]);
+            
+            $ch = curl_init($config['webhook_url']);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 5,
+            ]);
+            curl_exec($ch);
+            curl_close($ch);
+        }
     }
     
     /**

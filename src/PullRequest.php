@@ -253,8 +253,39 @@ class PullRequest
     
     private function branchExists(int $repoId, string $branch): bool 
     {
-        // TODO: 实际检查 Git 分支是否存在
-        return true;
+        $repo = $this->getRepoById($repoId);
+        if (!$repo || empty($repo['git_path'])) {
+            return false;
+        }
+        
+        $gitPath = realpath($repo['git_path']);
+        if ($gitPath === false || !str_starts_with($gitPath, '/var/git/repositories/')) {
+            return false;
+        }
+        
+        // 使用 git show-ref 检查分支是否存在
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open(
+            ['git', 'show-ref', '--verify', '--quiet', 'refs/heads/' . $branch],
+            $descriptorspec,
+            $pipes,
+            $gitPath
+        );
+        
+        if (is_resource($process)) {
+            fclose($pipes[0]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $exitCode = proc_close($process);
+            return $exitCode === 0;
+        }
+        
+        return false;
     }
     
     private function canMerge(array $repo, int $userId): bool 
@@ -264,24 +295,145 @@ class PullRequest
             return true;
         }
         
-        // TODO: 检查协作者权限
+        // 检查协作者权限
+        $collaborator = $this->db->fetch(
+            "SELECT permission FROM collaborators WHERE repo_id = ? AND user_id = ?",
+            [$repo['id'], $userId]
+        );
+        
+        if ($collaborator && in_array($collaborator['permission'], ['write', 'admin'])) {
+            return true;
+        }
         
         return false;
     }
     
     private function getPRChanges(array $pr): array 
     {
-        // TODO: 获取实际的文件变更
+        $repo = $this->getRepoById($pr['repo_id']);
+        if (!$repo || empty($repo['git_path'])) {
+            return ['additions' => 0, 'deletions' => 0, 'files' => []];
+        }
+        
+        $gitPath = realpath($repo['git_path']);
+        if ($gitPath === false || !str_starts_with($gitPath, '/var/git/repositories/')) {
+            return ['additions' => 0, 'deletions' => 0, 'files' => []];
+        }
+        
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        // 获取两个分支之间的差异统计
+        $process = proc_open(
+            ['git', 'diff', '--numstat', $pr['target_branch'], $pr['source_branch']],
+            $descriptorspec,
+            $pipes,
+            $gitPath
+        );
+        
+        $additions = 0;
+        $deletions = 0;
+        $files = [];
+        
+        if (is_resource($process)) {
+            $output = stream_get_contents($pipes[1]);
+            fclose($pipes[0]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            proc_close($process);
+            
+            foreach (explode("\n", trim($output)) as $line) {
+                if (empty($line)) continue;
+                
+                $parts = preg_split('/\s+/', $line);
+                if (count($parts) >= 3) {
+                    $additions += (int)($parts[0] === '-' ? 0 : $parts[0]);
+                    $deletions += (int)($parts[1] === '-' ? 0 : $parts[1]);
+                    $files[] = $parts[2];
+                }
+            }
+        }
+        
         return [
-            'additions' => 0,
-            'deletions' => 0,
-            'files' => []
+            'additions' => $additions,
+            'deletions' => $deletions,
+            'files' => $files
         ];
     }
     
     private function executeMerge(array $pr): array 
     {
-        // TODO: 执行实际的 Git 合并操作
-        return ['success' => true];
+        $repo = $this->getRepoById($pr['repo_id']);
+        if (!$repo || empty($repo['git_path'])) {
+            return ['success' => false, 'error' => '仓库不存在'];
+        }
+        
+        $gitPath = realpath($repo['git_path']);
+        if ($gitPath === false || !str_starts_with($gitPath, '/var/git/repositories/')) {
+            return ['success' => false, 'error' => '无效的 Git 路径'];
+        }
+        
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        // 切换到目标分支
+        $process = proc_open(
+            ['git', 'checkout', $pr['target_branch']],
+            $descriptorspec,
+            $pipes,
+            $gitPath
+        );
+        
+        if (is_resource($process)) {
+            fclose($pipes[0]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            proc_close($process);
+        }
+        
+        // 执行合并
+        $process = proc_open(
+            ['git', 'merge', '--no-ff', $pr['source_branch'], '-m', 'Merge branch \'' . $pr['source_branch'] . '\''],
+            $descriptorspec,
+            $pipes,
+            $gitPath
+        );
+        
+        if (is_resource($process)) {
+            $output = stream_get_contents($pipes[1]);
+            $error = stream_get_contents($pipes[2]);
+            fclose($pipes[0]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $exitCode = proc_close($process);
+            
+            if ($exitCode === 0) {
+                return ['success' => true, 'output' => $output];
+            } else {
+                // 合并失败，中止
+                $abortProcess = proc_open(
+                    ['git', 'merge', '--abort'],
+                    $descriptorspec,
+                    $pipes,
+                    $gitPath
+                );
+                if (is_resource($abortProcess)) {
+                    fclose($pipes[0]);
+                    fclose($pipes[1]);
+                    fclose($pipes[2]);
+                    proc_close($abortProcess);
+                }
+                
+                return ['success' => false, 'error' => '合并冲突: ' . $error];
+            }
+        }
+        
+        return ['success' => false, 'error' => '无法执行合并操作'];
     }
 }

@@ -224,11 +224,96 @@ class Comment
     private function sendNotification(string $parentType, int $parentId, 
                                      int $authorId, string $content): void 
     {
-        // TODO: 实现通知发送
-        // 1. 获取父对象的所有者
-        // 2. 获取所有参与者
-        // 3. 检查 @ 提及
-        // 4. 发送通知
+        // 获取父对象的所有者和参与者
+        $recipients = [];
+        $repoName = '';
+        
+        if ($parentType === 'issue') {
+            $issue = $this->db->fetch(
+                "SELECT i.repo_id, i.author_id, r.name as repo_name, r.owner_id 
+                 FROM issues i 
+                 JOIN repositories r ON i.repo_id = r.id 
+                 WHERE i.id = ?",
+                [$parentId]
+            );
+            
+            if ($issue) {
+                $recipients[] = $issue['author_id'];
+                $recipients[] = $issue['owner_id'];
+                $repoName = $issue['repo_name'];
+                
+                // 获取所有评论者
+                $commenters = $this->db->fetchAll(
+                    "SELECT DISTINCT author_id FROM comments 
+                     WHERE parent_type = 'issue' AND parent_id = ?",
+                    [$parentId]
+                );
+                foreach ($commenters as $c) {
+                    $recipients[] = $c['author_id'];
+                }
+            }
+            
+        } elseif ($parentType === 'pull_request') {
+            $pr = $this->db->fetch(
+                "SELECT pr.repo_id, pr.author_id, r.name as repo_name, r.owner_id 
+                 FROM pull_requests pr 
+                 JOIN repositories r ON pr.repo_id = r.id 
+                 WHERE pr.id = ?",
+                [$parentId]
+            );
+            
+            if ($pr) {
+                $recipients[] = $pr['author_id'];
+                $recipients[] = $pr['owner_id'];
+                $repoName = $pr['repo_name'];
+                
+                // 获取所有评论者
+                $commenters = $this->db->fetchAll(
+                    "SELECT DISTINCT author_id FROM comments 
+                     WHERE parent_type = 'pull_request' AND parent_id = ?",
+                    [$parentId]
+                );
+                foreach ($commenters as $c) {
+                    $recipients[] = $c['author_id'];
+                }
+            }
+        }
+        
+        // 去重并排除作者自己
+        $recipients = array_unique(array_filter($recipients, fn($id) => $id !== $authorId));
+        
+        // 检查 @ 提及
+        preg_match_all('/@(\w+)/', $content, $mentions);
+        if (!empty($mentions[1])) {
+            foreach ($mentions[1] as $username) {
+                $user = $this->db->fetch(
+                    "SELECT id FROM users WHERE username = ?",
+                    [$username]
+                );
+                if ($user) {
+                    $recipients[] = $user['id'];
+                }
+            }
+        }
+        
+        // 发送通知
+        $recipients = array_unique($recipients);
+        foreach ($recipients as $userId) {
+            $this->db->execute(
+                "INSERT INTO notifications (user_id, type, title, content, data, created_at) 
+                 VALUES (?, 'comment', ?, ?, ?, NOW())",
+                [
+                    $userId,
+                    "新评论通知",
+                    mb_substr($content, 0, 100),
+                    json_encode([
+                        'parent_type' => $parentType,
+                        'parent_id' => $parentId,
+                        'repo_name' => $repoName,
+                    ])
+                ]
+            );
+        }
     }
     
     private function isRepoOwner(array $comment, int $userId): bool 

@@ -9,9 +9,17 @@ namespace CodeVault\Controllers;
 use CodeVault\Models\User;
 use CodeVault\Models\VerificationCode;
 use CodeVault\Services\Session;
+use CodeVault\Services\Mailer;
 
 class AuthController
 {
+    private Mailer $mailer;
+    
+    public function __construct()
+    {
+        $this->mailer = new Mailer();
+    }
+    
     /**
      * 发送注册验证码
      */
@@ -32,11 +40,55 @@ class AuthController
         // 生成验证码
         $result = VerificationCode::create($email, 'register');
         
-        // TODO: 实际发送邮件
+        // 发送验证码邮件
+        $subject = 'CodeVault 注册验证码';
+        $body = $this->getVerificationEmailTemplate($result['code'], '注册');
+        
+        $sent = $this->mailer->send($email, $subject, $body);
+        
+        if (!$sent) {
+            error_log("Failed to send verification email to: {$email}");
+        }
+        
         return [
             'success' => true,
             'message' => '验证码已发送',
         ];
+    }
+    
+    /**
+     * 获取验证码邮件模板
+     */
+    private function getVerificationEmailTemplate(string $code, string $action): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://codevault.local';
+        
+        return <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .code { font-size: 32px; font-weight: bold; color: #0366d6; letter-spacing: 8px; }
+        .footer { margin-top: 30px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>CodeVault {$action}验证码</h2>
+        <p>您的验证码是：</p>
+        <p class="code">{$code}</p>
+        <p>验证码有效期为 10 分钟，请勿泄露给他人。</p>
+        <div class="footer">
+            <p>此邮件由系统自动发送，请勿回复。</p>
+            <p><a href="{$appUrl}">CodeVault</a> - 自托管 Git 仓库管理平台</p>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
     }
     
     /**
