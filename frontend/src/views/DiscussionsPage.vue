@@ -214,7 +214,7 @@
         </div>
 
         <!-- 内容 -->
-        <div class="detail-body" v-html="currentDiscussion.body_html"></div>
+        <div class="detail-body">{{ currentDiscussion.body }}</div>
 
         <!-- 操作按钮 -->
         <div class="detail-actions">
@@ -249,7 +249,7 @@
               </div>
             </div>
             
-            <div class="reply-body" v-html="reply.body_html"></div>
+            <div class="reply-body">{{ reply.body }}</div>
             
             <div class="reply-actions">
               <el-button
