@@ -58,7 +58,7 @@
               <span class="notification-type">{{ getTypeText(notification.type) }}</span>
             </div>
             
-            <div class="notification-body" v-html="notification.message"></div>
+            <div class="notification-body">{{ notification.message }}</div>
             
             <div class="notification-meta">
               <span class="time">{{ formatTime(notification.created_at) }}</span>
