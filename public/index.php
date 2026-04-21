@@ -128,6 +128,11 @@ $routes = [
     'PUT /api/notification/settings' => ['NotificationController', 'updateSettings'],
     'POST /api/notification/test' => ['NotificationController', 'sendTest'],
     
+    // 站内通知 API
+    'GET /api/notifications' => ['NotificationController', 'list'],
+    'POST /api/notifications/read' => ['NotificationController', 'markRead'],
+    'DELETE /api/notifications' => ['NotificationController', 'delete'],
+    
     // REST API
     'GET /api' => ['ApiController', 'docs'],
     'GET /api/users' => ['ApiController', 'listUsers'],

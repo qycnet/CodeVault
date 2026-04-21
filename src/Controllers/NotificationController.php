@@ -1,168 +1,141 @@
 <?php
 /**
- * CodeVault - 邮件通知控制器
+ * CodeVault - 通知控制器
  */
 
 namespace CodeVault\Controllers;
 
-use CodeVault\Models\User;
-use CodeVault\Models\Repository;
-use CodeVault\Services\Mailer;
 use CodeVault\Services\Session;
 use CodeVault\Database\Connection;
 
 class NotificationController
 {
-    private Mailer $mailer;
-    
-    public function __construct()
-    {
-        $this->mailer = new Mailer();
-    }
-    
     /**
-     * 获取用户通知设置
+     * 获取通知列表
      */
-    public function getSettings(array $data): array
+    public function list(array $data): array
     {
         $user = Session::user();
         if (!$user) {
             return ['success' => false, 'message' => '未登录'];
         }
         
-        $settings = Connection::queryOne(
-            "SELECT * FROM notification_settings WHERE user_id = ?",
-            [$user['id']]
-        );
+        $page = (int) ($data['page'] ?? 1);
+        $perPage = min((int) ($data['per_page'] ?? 30), 100);
+        $offset = ($page - 1) * $perPage;
+        $unreadOnly = ($data['unread_only'] ?? 'false') === 'true';
         
-        if (!$settings) {
-            // 返回默认设置
-            return [
-                'success' => true,
-                'settings' => [
-                    'email_enabled' => true,
-                    'notify_issue' => true,
-                    'notify_pr' => true,
-                    'notify_comment' => true,
-                    'notify_mention' => true,
-                    'notify_watch' => true,
-                    'digest_enabled' => false,
-                    'digest_frequency' => 'daily',
-                ],
-            ];
+        $sql = "SELECT n.*, r.name as repo_name, u.username as actor_name
+                FROM notifications n
+                LEFT JOIN repositories r ON n.repo_id = r.id
+                LEFT JOIN users u ON n.actor_id = u.id
+                WHERE n.user_id = ?";
+        
+        $params = [$user['id']];
+        
+        if ($unreadOnly) {
+            $sql .= " AND n.is_read = 0";
         }
+        
+        $sql .= " ORDER BY n.created_at DESC LIMIT ? OFFSET ?";
+        $params[] = $perPage;
+        $params[] = $offset;
+        
+        $notifications = Connection::query($sql, $params);
+        
+        // 获取未读数量
+        $unreadCount = Connection::queryOne(
+            "SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0",
+            [$user['id']]
+        )['count'];
         
         return [
             'success' => true,
-            'settings' => [
-                'email_enabled' => (bool) $settings['email_enabled'],
-                'notify_issue' => (bool) $settings['notify_issue'],
-                'notify_pr' => (bool) $settings['notify_pr'],
-                'notify_comment' => (bool) $settings['notify_comment'],
-                'notify_mention' => (bool) $settings['notify_mention'],
-                'notify_watch' => (bool) $settings['notify_watch'],
-                'digest_enabled' => (bool) $settings['digest_enabled'],
-                'digest_frequency' => $settings['digest_frequency'],
-            ],
+            'notifications' => $notifications,
+            'unread_count' => (int) $unreadCount,
+            'page' => $page,
+            'per_page' => $perPage,
         ];
     }
     
     /**
-     * 更新通知设置
+     * 标记为已读
      */
-    public function updateSettings(array $data): array
+    public function markRead(array $data): array
     {
         $user = Session::user();
         if (!$user) {
             return ['success' => false, 'message' => '未登录'];
         }
         
-        $existing = Connection::queryOne(
-            "SELECT * FROM notification_settings WHERE user_id = ?",
-            [$user['id']]
-        );
+        $id = (int) ($data['id'] ?? 0);
         
-        if ($existing) {
+        if ($id > 0) {
             Connection::execute(
-                "UPDATE notification_settings SET
-                    email_enabled = ?,
-                    notify_issue = ?,
-                    notify_pr = ?,
-                    notify_comment = ?,
-                    notify_mention = ?,
-                    notify_watch = ?,
-                    digest_enabled = ?,
-                    digest_frequency = ?
-                WHERE user_id = ?",
-                [
-                    (int) ($data['email_enabled'] ?? 1),
-                    (int) ($data['notify_issue'] ?? 1),
-                    (int) ($data['notify_pr'] ?? 1),
-                    (int) ($data['notify_comment'] ?? 1),
-                    (int) ($data['notify_mention'] ?? 1),
-                    (int) ($data['notify_watch'] ?? 1),
-                    (int) ($data['digest_enabled'] ?? 0),
-                    $data['digest_frequency'] ?? 'daily',
-                    $user['id'],
-                ]
+                "UPDATE notifications SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?",
+                [$id, $user['id']]
             );
         } else {
-            Connection::insert(
-                "INSERT INTO notification_settings (
-                    user_id, email_enabled, notify_issue, notify_pr,
-                    notify_comment, notify_mention, notify_watch,
-                    digest_enabled, digest_frequency
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
-                    $user['id'],
-                    (int) ($data['email_enabled'] ?? 1),
-                    (int) ($data['notify_issue'] ?? 1),
-                    (int) ($data['notify_pr'] ?? 1),
-                    (int) ($data['notify_comment'] ?? 1),
-                    (int) ($data['notify_mention'] ?? 1),
-                    (int) ($data['notify_watch'] ?? 1),
-                    (int) ($data['digest_enabled'] ?? 0),
-                    $data['digest_frequency'] ?? 'daily',
-                ]
+            // 标记所有为已读
+            Connection::execute(
+                "UPDATE notifications SET is_read = 1, read_at = NOW() WHERE user_id = ? AND is_read = 0",
+                [$user['id']]
             );
         }
         
-        return ['success' => true, 'message' => '通知设置已更新'];
+        return ['success' => true, 'message' => '已标记为已读'];
     }
     
     /**
-     * 发送测试邮件
+     * 删除通知
      */
-    public function sendTest(array $data): array
+    public function delete(array $data): array
     {
         $user = Session::user();
         if (!$user) {
             return ['success' => false, 'message' => '未登录'];
         }
         
-        if (empty($user['email'])) {
-            return ['success' => false, 'message' => '请先设置邮箱地址'];
-        }
+        $id = (int) ($data['id'] ?? 0);
         
-        $sent = $this->mailer->sendNotification(
-            $user['email'],
-            'CodeVault 测试邮件',
-            '这是一封测试邮件，如果您收到此邮件，说明邮件配置正确。'
+        Connection::execute(
+            "DELETE FROM notifications WHERE id = ? AND user_id = ?",
+            [$id, $user['id']]
         );
         
-        return $sent
-            ? ['success' => true, 'message' => '测试邮件已发送']
-            : ['success' => false, 'message' => '邮件发送失败'];
+        return ['success' => true, 'message' => '通知已删除'];
     }
     
     /**
-     * 发送 Issue 通知
+     * 创建通知（内部方法）
      */
-    public function sendIssueNotify(int $issueId, string $type, int $triggerUserId): void
+    public static function create(array $data): int
     {
-        // 获取 Issue 信息
+        return Connection::insert(
+            "INSERT INTO notifications (
+                user_id, type, title, body, repo_id, 
+                issue_id, pr_id, actor_id, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
+            [
+                $data['user_id'],
+                $data['type'],
+                $data['title'],
+                $data['body'] ?? '',
+                $data['repo_id'] ?? null,
+                $data['issue_id'] ?? null,
+                $data['pr_id'] ?? null,
+                $data['actor_id'] ?? null,
+            ]
+        );
+    }
+    
+    /**
+     * Issue 相关通知
+     */
+    public static function notifyIssue(int $issueId, string $type, int $actorId): void
+    {
         $issue = Connection::queryOne(
-            "SELECT i.*, r.name as repo_name, r.id as repo_id, u.email, u.username
+            "SELECT i.*, r.name as repo_name, r.id as repo_id, u.id as owner_id
              FROM issues i
              JOIN repositories r ON i.repo_id = r.id
              JOIN users u ON i.user_id = u.id
@@ -170,43 +143,36 @@ class NotificationController
             [$issueId]
         );
         
-        if (!$issue || empty($issue['email'])) {
-            return;
-        }
+        if (!$issue) return;
         
-        // 检查用户通知设置
-        if (!$this->shouldNotify($issue['user_id'], 'issue')) {
-            return;
-        }
+        $titles = [
+            'created' => "新 Issue: {$issue['title']}",
+            'updated' => "Issue 更新: {$issue['title']}",
+            'closed' => "Issue 已关闭: {$issue['title']}",
+            'reopened' => "Issue 已重新打开: {$issue['title']}",
+            'commented' => "Issue 新评论: {$issue['title']}",
+        ];
         
-        // 不通知触发者自己
-        if ($issue['user_id'] === $triggerUserId) {
-            return;
+        // 通知 Issue 作者
+        if ($issue['owner_id'] !== $actorId) {
+            self::create([
+                'user_id' => $issue['owner_id'],
+                'type' => 'issue',
+                'title' => $titles[$type] ?? "Issue 通知",
+                'repo_id' => $issue['repo_id'],
+                'issue_id' => $issueId,
+                'actor_id' => $actorId,
+            ]);
         }
-        
-        $this->mailer->sendIssueNotification(
-            $issue['email'],
-            $type,
-            [
-                'id' => $issue['id'],
-                'title' => $issue['title'],
-                'status' => $issue['status'],
-            ],
-            [
-                'id' => $issue['repo_id'],
-                'name' => $issue['repo_name'],
-            ]
-        );
     }
     
     /**
-     * 发送 PR 通知
+     * PR 相关通知
      */
-    public function sendPRNotify(int $prId, string $type, int $triggerUserId): void
+    public static function notifyPR(int $prId, string $type, int $actorId): void
     {
-        // 获取 PR 信息
         $pr = Connection::queryOne(
-            "SELECT pr.*, r.name as repo_name, r.id as repo_id, u.email, u.username
+            "SELECT pr.*, r.name as repo_name, r.id as repo_id, u.id as owner_id
              FROM pull_requests pr
              JOIN repositories r ON pr.repo_id = r.id
              JOIN users u ON pr.user_id = u.id
@@ -214,109 +180,85 @@ class NotificationController
             [$prId]
         );
         
-        if (!$pr || empty($pr['email'])) {
-            return;
+        if (!$pr) return;
+        
+        $titles = [
+            'created' => "新 Pull Request: {$pr['title']}",
+            'updated' => "Pull Request 更新: {$pr['title']}",
+            'merged' => "Pull Request 已合并: {$pr['title']}",
+            'closed' => "Pull Request 已关闭: {$pr['title']}",
+            'reopened' => "Pull Request 已重新打开: {$pr['title']}",
+            'commented' => "Pull Request 新评论: {$pr['title']}",
+            'reviewed' => "Pull Request 审查: {$pr['title']}",
+        ];
+        
+        // 通知 PR 作者
+        if ($pr['owner_id'] !== $actorId) {
+            self::create([
+                'user_id' => $pr['owner_id'],
+                'type' => 'pull_request',
+                'title' => $titles[$type] ?? "Pull Request 通知",
+                'repo_id' => $pr['repo_id'],
+                'pr_id' => $prId,
+                'actor_id' => $actorId,
+            ]);
         }
         
-        // 检查用户通知设置
-        if (!$this->shouldNotify($pr['user_id'], 'pr')) {
-            return;
+        // 如果是合并，通知仓库所有者
+        if ($type === 'merged') {
+            $repoOwner = Connection::queryOne(
+                "SELECT user_id FROM repositories WHERE id = ?",
+                [$pr['repo_id']]
+            );
+            
+            if ($repoOwner && $repoOwner['user_id'] !== $actorId && $repoOwner['user_id'] !== $pr['owner_id']) {
+                self::create([
+                    'user_id' => $repoOwner['user_id'],
+                    'type' => 'pull_request',
+                    'title' => "PR 已合并: {$pr['title']}",
+                    'repo_id' => $pr['repo_id'],
+                    'pr_id' => $prId,
+                    'actor_id' => $actorId,
+                ]);
+            }
         }
-        
-        // 不通知触发者自己
-        if ($pr['user_id'] === $triggerUserId) {
-            return;
-        }
-        
-        $this->mailer->sendPRNotification(
-            $pr['email'],
-            $type,
-            [
-                'id' => $pr['id'],
-                'title' => $pr['title'],
-                'status' => $pr['status'],
-            ],
-            [
-                'id' => $pr['repo_id'],
-                'name' => $pr['repo_name'],
-            ]
-        );
     }
     
     /**
-     * 发送评论通知
+     * @ 提及通知
      */
-    public function sendCommentNotify(int $commentId, int $triggerUserId): void
+    public static function notifyMention(string $username, array $context): void
     {
-        // 获取评论信息
-        $comment = Connection::queryOne(
-            "SELECT c.*, u.email as commenter_email
-             FROM comments c
-             JOIN users u ON c.user_id = u.id
-             WHERE c.id = ?",
-            [$commentId]
+        $user = Connection::queryOne(
+            "SELECT id FROM users WHERE username = ?",
+            [$username]
         );
         
-        if (!$comment) {
-            return;
-        }
+        if (!$user) return;
         
-        // 获取被评论对象的所有者
-        $targetUser = null;
-        
-        if ($comment['issue_id']) {
-            $targetUser = Connection::queryOne(
-                "SELECT u.id, u.email FROM issues i JOIN users u ON i.user_id = u.id WHERE i.id = ?",
-                [$comment['issue_id']]
-            );
-        } elseif ($comment['pr_id']) {
-            $targetUser = Connection::queryOne(
-                "SELECT u.id, u.email FROM pull_requests pr JOIN users u ON pr.user_id = u.id WHERE pr.id = ?",
-                [$comment['pr_id']]
-            );
-        }
-        
-        if (!$targetUser || empty($targetUser['email'])) {
-            return;
-        }
-        
-        // 检查通知设置
-        if (!$this->shouldNotify($targetUser['id'], 'comment')) {
-            return;
-        }
-        
-        // 不通知自己
-        if ($targetUser['id'] === $triggerUserId) {
-            return;
-        }
-        
-        $this->mailer->sendNotification(
-            $targetUser['email'],
-            '您收到了新的评论',
-            $comment['content'],
-            ['comment_id' => $commentId]
-        );
+        self::create([
+            'user_id' => $user['id'],
+            'type' => 'mention',
+            'title' => $context['title'] ?? "您被提及了",
+            'body' => $context['body'] ?? '',
+            'repo_id' => $context['repo_id'] ?? null,
+            'issue_id' => $context['issue_id'] ?? null,
+            'pr_id' => $context['pr_id'] ?? null,
+            'actor_id' => $context['actor_id'] ?? null,
+        ]);
     }
     
     /**
-     * 检查是否应该发送通知
+     * 解析 @ 提及
      */
-    private function shouldNotify(int $userId, string $type): bool
+    public static function parseMentions(string $text, array $context): void
     {
-        $settings = Connection::queryOne(
-            "SELECT * FROM notification_settings WHERE user_id = ?",
-            [$userId]
-        );
+        preg_match_all('/@(\w+)/', $text, $matches);
         
-        if (!$settings) {
-            return true; // 默认发送
+        $mentioned = array_unique($matches[1] ?? []);
+        
+        foreach ($mentioned as $username) {
+            self::notifyMention($username, $context);
         }
-        
-        if (!$settings['email_enabled']) {
-            return false;
-        }
-        
-        $field = "notify_{$type}";
-        return isset($settings[$field]) ? (bool) $settings[$field] : true;
     }
 }
