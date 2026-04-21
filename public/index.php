@@ -166,6 +166,32 @@ $routes = [
     
     // 用户资料 API
     'PUT /api/user/profile' => ['ApiController', 'updateProfile'],
+    'GET /api/user/stars' => ['StarController', 'listUserStars'],
+    
+    // Star API
+    'POST /api/stars' => ['StarController', 'star'],
+    'DELETE /api/stars' => ['StarController', 'unstar'],
+    'GET /api/stars/check' => ['StarController', 'checkStar'],
+    
+    // Fork API
+    'POST /api/forks' => ['ForkController', 'fork'],
+    'GET /api/forks' => ['ForkController', 'listForks'],
+    'GET /api/forks/network' => ['ForkController', 'getForkNetwork'],
+    
+    // Webhook API
+    'GET /api/webhooks' => ['WebhookController', 'list'],
+    'POST /api/webhooks' => ['WebhookController', 'create'],
+    'PUT /api/webhooks' => ['WebhookController', 'update'],
+    'DELETE /api/webhooks' => ['WebhookController', 'delete'],
+    
+    // Release API
+    'GET /api/releases' => ['ReleaseController', 'listReleases'],
+    'POST /api/releases' => ['ReleaseController', 'createRelease'],
+    'PUT /api/releases' => ['ReleaseController', 'updateRelease'],
+    'DELETE /api/releases' => ['ReleaseController', 'deleteRelease'],
+    'GET /api/tags' => ['ReleaseController', 'listTags'],
+    'POST /api/tags' => ['ReleaseController', 'createTag'],
+    'DELETE /api/tags' => ['ReleaseController', 'deleteTag'],
     
     // Actions API
     'GET /api/actions/workflows' => ['ActionsController', 'listWorkflows'],
