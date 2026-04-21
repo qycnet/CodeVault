@@ -322,26 +322,51 @@ class AdvancedSearchService
         );
         
         foreach ($repos as $repo) {
-            // 使用 git grep 搜索代码
-            $cmd = sprintf(
-                'cd %s && git grep -n --no-color -e %s 2>/dev/null | head -50',
-                escapeshellarg($repo['git_path']),
-                escapeshellarg($keyword)
+            // 使用 proc_open 安全执行 git grep（避免命令注入）
+            $descriptorspec = [
+                0 => ['pipe', 'r'],  // stdin
+                1 => ['pipe', 'w'],  // stdout
+                2 => ['pipe', 'w'],  // stderr
+            ];
+            
+            // 验证路径存在且在允许的目录内
+            $gitPath = realpath($repo['git_path']);
+            if ($gitPath === false || !str_starts_with($gitPath, '/var/git/repositories/')) {
+                continue;
+            }
+            
+            // 使用白名单验证关键词（仅允许安全字符）
+            if (!preg_match('/^[\w\-\.\/\@\#\$\%\^\&\*\(\)\[\]\{\}\+\=\?]+$/', $keyword)) {
+                continue;
+            }
+            
+            $process = proc_open(
+                ['git', 'grep', '-n', '--no-color', '-e', $keyword],
+                $descriptorspec,
+                $pipes,
+                $gitPath
             );
             
-            exec($cmd, $output, $returnCode);
-            
-            if ($returnCode === 0 && !empty($output)) {
-                foreach ($output as $line) {
-                    if (preg_match('/^(.+?):(\d+):(.*)$/', $line, $matches)) {
-                        $results[] = [
-                            'repo_id' => $repo['id'],
-                            'repo_name' => $repo['name'],
-                            'file' => $matches[1],
-                            'line' => (int) $matches[2],
-                            'content' => $matches[3],
-                            'highlight' => $this->highlightKeyword($matches[3], $keyword),
-                        ];
+            if (is_resource($process)) {
+                $output = stream_get_contents($pipes[1]);
+                fclose($pipes[0]);
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                proc_close($process);
+                
+                if (!empty($output)) {
+                    $lines = explode("\n", trim($output));
+                    foreach (array_slice($lines, 0, 50) as $line) {
+                        if (preg_match('/^(.+?):(\d+):(.*)$/', $line, $matches)) {
+                            $results[] = [
+                                'repo_id' => $repo['id'],
+                                'repo_name' => $repo['name'],
+                                'file' => $matches[1],
+                                'line' => (int) $matches[2],
+                                'content' => $matches[3],
+                                'highlight' => $this->highlightKeyword($matches[3], $keyword),
+                            ];
+                        }
                     }
                 }
             }
