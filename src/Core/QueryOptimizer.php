@@ -26,6 +26,41 @@ class QueryOptimizer
     private array $queryLog = [];
     
     /**
+     * 允许的表名白名单
+     */
+    private const ALLOWED_TABLES = [
+        'users', 'repositories', 'ssh_keys', 'issues', 'pull_requests',
+        'commits', 'webhooks', 'webhook_deliveries', 'gists', 'wikis',
+        'wiki_pages', 'workflows', 'workflow_runs', 'user_follows',
+        'user_activities', 'user_oauth_bindings', 'api_tokens', 'sessions',
+        'pages_sites', 'pages_deployments', 'security_scans', 'comments',
+        'stars', 'watchers', 'forks', 'labels', 'milestones', 'branches',
+        'tags', 'releases', 'deploy_keys', 'protected_branches', 'reviews',
+        'review_comments', 'discussion_categories', 'discussions',
+        'discussion_replies', 'notifications', 'audit_logs', 'cache',
+        'performance_logs', 'asset_versions', 'verification_codes',
+    ];
+    
+    /**
+     * 验证表名是否在白名单中
+     */
+    private function validateTableName(string $tableName): bool
+    {
+        return in_array($tableName, self::ALLOWED_TABLES, true);
+    }
+    
+    /**
+     * 安全获取表名（带验证）
+     */
+    private function getSafeTableName(string $tableName): string
+    {
+        if (!$this->validateTableName($tableName)) {
+            throw new \InvalidArgumentException("Invalid table name: {$tableName}");
+        }
+        return $tableName;
+    }
+    
+    /**
      * 构造函数
      */
     public function __construct(int $slowQueryThreshold = 100, bool $enableQueryLog = true)
@@ -212,7 +247,8 @@ class QueryOptimizer
      */
     public function analyzeTableIndexes(string $tableName): array
     {
-        $indexes = Connection::query("SHOW INDEX FROM {$tableName}");
+        $tableName = $this->getSafeTableName($tableName);
+        $indexes = Connection::query("SHOW INDEX FROM `{$tableName}`");
         
         $analysis = [
             'table' => $tableName,
@@ -263,7 +299,8 @@ class QueryOptimizer
      */
     public function getTableStats(string $tableName): array
     {
-        $status = Connection::queryOne("SHOW TABLE STATUS LIKE '{$tableName}'");
+        $tableName = $this->getSafeTableName($tableName);
+        $status = Connection::queryOne("SHOW TABLE STATUS LIKE ?", [$tableName]);
         
         return [
             'table' => $tableName,
@@ -283,7 +320,8 @@ class QueryOptimizer
      */
     public function optimizeTable(string $tableName): array
     {
-        $result = Connection::query("OPTIMIZE TABLE {$tableName}");
+        $tableName = $this->getSafeTableName($tableName);
+        $result = Connection::query("OPTIMIZE TABLE `{$tableName}`");
         
         return [
             'table' => $tableName,
@@ -315,10 +353,11 @@ class QueryOptimizer
      */
     public function suggestIndexes(string $tableName): array
     {
+        $tableName = $this->getSafeTableName($tableName);
         $suggestions = [];
         
         // 获取表结构
-        $columns = Connection::query("DESCRIBE {$tableName}");
+        $columns = Connection::query("DESCRIBE `{$tableName}`");
         
         // 获取外键信息
         $foreignKeys = Connection::query("

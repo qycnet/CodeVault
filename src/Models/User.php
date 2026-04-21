@@ -88,6 +88,27 @@ class User
     }
     
     /**
+     * 更新密码
+     * 注意：调用此方法后应重新生成 Session ID
+     */
+    public static function updatePassword(int $id, string $newPassword): bool
+    {
+        $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+        
+        $result = Connection::execute(
+            "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?",
+            [$passwordHash, $id]
+        );
+        
+        // 重新生成 Session ID 防止 Session Fixation
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+        
+        return $result > 0;
+    }
+    
+    /**
      * 设置邮箱已验证
      */
     public static function setVerified(int $id): int

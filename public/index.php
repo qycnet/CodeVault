@@ -56,8 +56,15 @@ header('Content-Type: application/json; charset=utf-8');
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
+// API 版本控制 - 支持 /api/v1/ 和 /api/ 两种格式
+$apiVersion = 'v1';
+$uri = preg_replace('#^/api/v\d+/#', '/api/', $uri);
+
 // 获取请求数据
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+
+// 添加 API 版本到响应头
+header("X-API-Version: {$apiVersion}");
 
 // 路由表
 $routes = [
