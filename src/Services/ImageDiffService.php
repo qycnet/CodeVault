@@ -13,6 +13,13 @@ namespace Services;
 
 class ImageDiffService
 {
+    private $securityService;
+    
+    public function __construct(?SecurityService $securityService = null)
+    {
+        $this->securityService = $securityService ?? new SecurityService();
+    }
+    
     // 支持的图片格式
     private const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'];
     
@@ -81,6 +88,21 @@ class ImageDiffService
      */
     public function compareImages(string $image1Path, string $image2Path, string $mode = self::DIFF_MODE_SIDE_BY_SIDE): array
     {
+        // 安全验证：检查路径是否在允许目录内
+        if (!$this->securityService->validatePath($image1Path)) {
+            return [
+                'success' => false,
+                'error' => '非法文件路径：' . basename($image1Path),
+            ];
+        }
+        
+        if (!$this->securityService->validatePath($image2Path)) {
+            return [
+                'success' => false,
+                'error' => '非法文件路径：' . basename($image2Path),
+            ];
+        }
+        
         if (!file_exists($image1Path) || !file_exists($image2Path)) {
             return [
                 'success' => false,
@@ -413,6 +435,21 @@ class ImageDiffService
      */
     public function compareBinaryFiles(string $file1Path, string $file2Path): array
     {
+        // 安全验证：检查路径是否在允许目录内
+        if (!$this->securityService->validatePath($file1Path)) {
+            return [
+                'success' => false,
+                'error' => '非法文件路径：' . basename($file1Path),
+            ];
+        }
+        
+        if (!$this->securityService->validatePath($file2Path)) {
+            return [
+                'success' => false,
+                'error' => '非法文件路径：' . basename($file2Path),
+            ];
+        }
+        
         if (!file_exists($file1Path) || !file_exists($file2Path)) {
             return [
                 'success' => false,
