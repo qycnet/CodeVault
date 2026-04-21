@@ -199,6 +199,11 @@ const routes: RouteRecordRaw[] = [
     name: 'Notifications',
     component: () => import('@/views/NotificationsPage.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import('@/views/SearchPage.vue')
   }
 ]
 

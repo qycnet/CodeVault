@@ -140,6 +140,7 @@ $routes = [
     'GET /api/search/repositories' => ['ApiController', 'searchRepos'],
     'GET /api/search/issues' => ['ApiController', 'searchIssues'],
     'GET /api/search/users' => ['ApiController', 'searchUsers'],
+    'GET /api/search/code' => ['ApiController', 'searchCode'],
     'GET /api/repos/stargazers' => ['ApiController', 'listStargazers'],
     'POST /api/repos/star' => ['ApiController', 'starRepo'],
     'DELETE /api/repos/star' => ['ApiController', 'unstarRepo'],

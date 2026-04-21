@@ -285,9 +285,103 @@ class ApiController
     }
     
     /**
-     * 搜索用户
+     * 搜索代码
      */
-    public function searchUsers(array $data): array
+    public function searchCode(array $data): array
+    {
+        $user = Session::user();
+        $userId = $user ? $user['id'] : 0;
+        
+        $query = trim($data['q'] ?? '');
+        $repoId = (int) ($data['repo_id'] ?? 0);
+        $page = (int) ($data['page'] ?? 1);
+        $perPage = min((int) ($data['per_page'] ?? 30), 100);
+        
+        if (empty($query)) {
+            return ['success' => false, 'message' => '请输入搜索关键词'];
+        }
+        
+        $results = [];
+        
+        if ($repoId > 0) {
+            // 在指定仓库搜索
+            $repo = Connection::queryOne(
+                "SELECT * FROM repositories WHERE id = ? AND (is_private = 0 OR user_id = ?)",
+                [$repoId, $userId]
+            );
+            
+            if ($repo) {
+                $results = $this->searchCodeInRepo($repo['git_path'], $query, $page, $perPage);
+            }
+        } else {
+            // 全局搜索（仅公开仓库）
+            $repos = Connection::query(
+                "SELECT * FROM repositories WHERE is_private = 0 LIMIT 100"
+            );
+            
+            foreach ($repos as $repo) {
+                $repoResults = $this->searchCodeInRepo($repo['git_path'], $query, 1, 10);
+                foreach ($repoResults as $result) {
+                    $result['repo_name'] = $repo['name'];
+                    $results[] = $result;
+                }
+                
+                if (count($results) >= $perPage) break;
+            }
+        }
+        
+        return [
+            'success' => true,
+            'items' => array_slice($results, 0, $perPage),
+            'page' => $page,
+            'per_page' => $perPage,
+        ];
+    }
+    
+    /**
+     * 在仓库中搜索代码
+     */
+    private function searchCodeInRepo(string $repoPath, string $query, int $page, int $perPage): array
+    {
+        $results = [];
+        $offset = ($page - 1) * $perPage;
+        
+        // 使用 git grep 搜索
+        $cmd = sprintf(
+            'cd %s && git grep -n --no-color -i %s 2>/dev/null | head -n %d',
+            escapeshellarg($repoPath),
+            escapeshellarg($query),
+            $offset + $perPage
+        );
+        
+        exec($cmd, $output, $returnCode);
+        
+        foreach ($output as $line) {
+            // 格式: file:line:content
+            if (preg_match('/^(.+?):(\d+):(.*)$/', $line, $matches)) {
+                $results[] = [
+                    'file' => $matches[1],
+                    'line' => (int) $matches[2],
+                    'content' => $matches[3],
+                    'highlight' => $this->highlightQuery($matches[3], $query),
+                ];
+            }
+        }
+        
+        return $results;
+    }
+    
+    /**
+     * 高亮搜索关键词
+     */
+    private function highlightQuery(string $content, string $query): string
+    {
+        return preg_replace(
+            '/(' . preg_quote($query, '/') . ')/i',
+            '<mark>$1</mark>',
+            htmlspecialchars($content)
+        );
+    }
     {
         $query = trim($data['q'] ?? '');
         $page = (int) ($data['page'] ?? 1);
