@@ -181,6 +181,18 @@ const routes: RouteRecordRaw[] = [
     name: 'NotificationSettings',
     component: () => import('@/views/NotificationSettings.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/labels',
+    name: 'Labels',
+    component: () => import('@/views/LabelsPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/milestones',
+    name: 'Milestones',
+    component: () => import('@/views/MilestonesPage.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

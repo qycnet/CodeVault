@@ -142,8 +142,12 @@ $routes = [
     'POST /api/repos/fork' => ['ApiController', 'forkRepo'],
     'GET /api/repos/labels' => ['ApiController', 'listLabels'],
     'POST /api/repos/labels' => ['ApiController', 'createLabel'],
+    'PUT /api/repos/labels' => ['ApiController', 'updateLabel'],
+    'DELETE /api/repos/labels' => ['ApiController', 'deleteLabel'],
     'GET /api/repos/milestones' => ['ApiController', 'listMilestones'],
     'POST /api/repos/milestones' => ['ApiController', 'createMilestone'],
+    'PUT /api/repos/milestones' => ['ApiController', 'updateMilestone'],
+    'DELETE /api/repos/milestones' => ['ApiController', 'deleteMilestone'],
     'GET /api/orgs' => ['ApiController', 'listOrgs'],
     'POST /api/orgs' => ['ApiController', 'createOrg'],
     

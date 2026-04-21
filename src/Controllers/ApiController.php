@@ -539,6 +539,83 @@ class ApiController
     }
     
     /**
+     * 更新标签
+     */
+    public function updateLabel(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $labelId = (int) ($data['id'] ?? 0);
+        $name = trim($data['name'] ?? '');
+        $color = trim($data['color'] ?? '');
+        
+        if ($labelId <= 0) {
+            return ['success' => false, 'message' => '参数错误'];
+        }
+        
+        $label = Connection::queryOne("SELECT * FROM labels WHERE id = ?", [$labelId]);
+        if (!$label) {
+            return ['success' => false, 'message' => '标签不存在'];
+        }
+        
+        if (!Repository::isOwner($label['repo_id'], $user['id'])) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        $fields = [];
+        $params = [];
+        
+        if (!empty($name)) {
+            $fields[] = "name = ?";
+            $params[] = $name;
+        }
+        
+        if (!empty($color)) {
+            $fields[] = "color = ?";
+            $params[] = $color;
+        }
+        
+        if (empty($fields)) {
+            return ['success' => true, 'message' => '无更新'];
+        }
+        
+        $params[] = $labelId;
+        Connection::execute("UPDATE labels SET " . implode(', ', $fields) . " WHERE id = ?", $params);
+        
+        return ['success' => true, 'message' => '标签已更新'];
+    }
+    
+    /**
+     * 删除标签
+     */
+    public function deleteLabel(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $labelId = (int) ($data['id'] ?? 0);
+        
+        $label = Connection::queryOne("SELECT * FROM labels WHERE id = ?", [$labelId]);
+        if (!$label) {
+            return ['success' => false, 'message' => '标签不存在'];
+        }
+        
+        if (!Repository::isOwner($label['repo_id'], $user['id'])) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        Connection::execute("DELETE FROM labels WHERE id = ?", [$labelId]);
+        Connection::execute("DELETE FROM issue_labels WHERE label_id = ?", [$labelId]);
+        
+        return ['success' => true, 'message' => '标签已删除'];
+    }
+    
+    /**
      * 获取里程碑列表
      */
     public function listMilestones(array $data): array
@@ -591,6 +668,94 @@ class ApiController
             'success' => true,
             'milestone_id' => $milestoneId,
         ];
+    }
+    
+    /**
+     * 更新里程碑
+     */
+    public function updateMilestone(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $milestoneId = (int) ($data['id'] ?? 0);
+        
+        if ($milestoneId <= 0) {
+            return ['success' => false, 'message' => '参数错误'];
+        }
+        
+        $milestone = Connection::queryOne("SELECT * FROM milestones WHERE id = ?", [$milestoneId]);
+        if (!$milestone) {
+            return ['success' => false, 'message' => '里程碑不存在'];
+        }
+        
+        if (!Repository::isOwner($milestone['repo_id'], $user['id'])) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        $fields = [];
+        $params = [];
+        
+        if (isset($data['title'])) {
+            $fields[] = "title = ?";
+            $params[] = trim($data['title']);
+        }
+        
+        if (isset($data['description'])) {
+            $fields[] = "description = ?";
+            $params[] = trim($data['description']);
+        }
+        
+        if (isset($data['due_date'])) {
+            $fields[] = "due_date = ?";
+            $params[] = $data['due_date'];
+        }
+        
+        if (isset($data['is_closed'])) {
+            $fields[] = "is_closed = ?";
+            $params[] = (int) $data['is_closed'];
+            $fields[] = "closed_at = " . ($data['is_closed'] ? "NOW()" : "NULL");
+        }
+        
+        if (empty($fields)) {
+            return ['success' => true, 'message' => '无更新'];
+        }
+        
+        $params[] = $milestoneId;
+        Connection::execute("UPDATE milestones SET " . implode(', ', $fields) . " WHERE id = ?", $params);
+        
+        return ['success' => true, 'message' => '里程碑已更新'];
+    }
+    
+    /**
+     * 删除里程碑
+     */
+    public function deleteMilestone(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $milestoneId = (int) ($data['id'] ?? 0);
+        
+        $milestone = Connection::queryOne("SELECT * FROM milestones WHERE id = ?", [$milestoneId]);
+        if (!$milestone) {
+            return ['success' => false, 'message' => '里程碑不存在'];
+        }
+        
+        if (!Repository::isOwner($milestone['repo_id'], $user['id'])) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        Connection::execute("DELETE FROM milestones WHERE id = ?", [$milestoneId]);
+        
+        // 清除关联的 Issue
+        Connection::execute("UPDATE issues SET milestone_id = NULL WHERE milestone_id = ?", [$milestoneId]);
+        
+        return ['success' => true, 'message' => '里程碑已删除'];
     }
     
     /**
