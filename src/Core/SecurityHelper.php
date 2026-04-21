@@ -9,6 +9,37 @@ namespace CodeVault\Core;
 class SecurityHelper
 {
     /**
+     * 生成 CSRF Token
+     */
+    public static function generateCsrfToken(): string
+    {
+        if (!isset($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+    
+    /**
+     * 验证 CSRF Token
+     */
+    public static function verifyCsrfToken(?string $token): bool
+    {
+        if (!isset($_SESSION['csrf_token']) || empty($token)) {
+            return false;
+        }
+        return hash_equals($_SESSION['csrf_token'], $token);
+    }
+    
+    /**
+     * 获取 CSRF 隐藏字段（用于表单）
+     */
+    public static function csrfField(): string
+    {
+        $token = self::generateCsrfToken();
+        return '<input type="hidden" name="csrf_token" value="' . self::htmlEscape($token) . '">';
+    }
+    
+    /**
      * HTML 转义（防止 XSS）
      */
     public static function htmlEscape(string $input): string

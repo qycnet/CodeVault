@@ -307,6 +307,67 @@ class SecurityService
     }
     
     /**
+     * 速率限制检查
+     */
+    public function checkRateLimit(string $key, int $maxRequests = 100, int $windowSeconds = 3600): bool
+    {
+        $redis = $this->getRedis();
+        if (!$redis) {
+            return true; // Redis 不可用时跳过限制
+        }
+        
+        $current = (int) $redis->get($key);
+        
+        if ($current >= $maxRequests) {
+            return false; // 超过限制
+        }
+        
+        if ($current === 0) {
+            $redis->setex($key, $windowSeconds, 1);
+        } else {
+            $redis->incr($key);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 获取速率限制剩余次数
+     */
+    public function getRateLimitRemaining(string $key, int $maxRequests = 100): int
+    {
+        $redis = $this->getRedis();
+        if (!$redis) {
+            return $maxRequests;
+        }
+        
+        $current = (int) $redis->get($key);
+        return max(0, $maxRequests - $current);
+    }
+    
+    /**
+     * 获取 Redis 连接
+     */
+    private function getRedis(): ?\Redis
+    {
+        static $redis = null;
+        
+        if ($redis === null) {
+            try {
+                $redis = new \Redis();
+                $host = $_ENV['REDIS_HOST'] ?? '127.0.0.1';
+                $port = (int) ($_ENV['REDIS_PORT'] ?? 6379);
+                $redis->connect($host, $port, 2);
+                $redis->select((int) ($_ENV['REDIS_DB'] ?? 0));
+            } catch (\Exception $e) {
+                $redis = false;
+            }
+        }
+        
+        return $redis ?: null;
+    }
+    
+    /**
      * 输入验证：整数
      */
     public function validateInt($value, ?int $min = null, ?int $max = null): ?int

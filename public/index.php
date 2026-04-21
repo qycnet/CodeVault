@@ -44,7 +44,14 @@ if (in_array($origin, $allowedOrigins)) {
     header('Access-Control-Allow-Origin: ' . $origin);
 }
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token');
+
+// 安全响应头
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
@@ -65,6 +72,36 @@ $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
 // 添加 API 版本到响应头
 header("X-API-Version: {$apiVersion}");
+
+// CSRF 验证（POST/PUT/DELETE 请求）
+$csrfExemptRoutes = [
+    'POST /api/auth/login',
+    'POST /api/auth/register',
+];
+
+if (in_array($method, ['POST', 'PUT', 'DELETE']) && !in_array("{$method} {$uri}", $csrfExemptRoutes)) {
+    $csrfToken = $input['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+    if (!\CodeVault\Core\SecurityHelper::verifyCsrfToken($csrfToken)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'CSRF token 验证失败']);
+        exit(0);
+    }
+}
+
+// 速率限制
+$securityService = new \CodeVault\Services\SecurityService();
+$clientIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$rateLimitKey = "rate_limit:{$clientIp}:" . md5($uri);
+
+if (!$securityService->checkRateLimit($rateLimitKey, 100, 60)) {
+    $remaining = $securityService->getRateLimitRemaining($rateLimitKey, 100);
+    header("X-RateLimit-Remaining: {$remaining}");
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => '请求过于频繁，请稍后再试']);
+    exit(0);
+}
+
+header("X-RateLimit-Remaining: " . $securityService->getRateLimitRemaining($rateLimitKey, 100));
 
 // 路由表
 $routes = [

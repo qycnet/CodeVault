@@ -108,17 +108,34 @@ class ActionsRunner
      */
     private function cloneRepo(string $gitPath, string $workDir, string $branch): void
     {
-        $cmd = sprintf(
-            'git clone --branch %s %s %s 2>&1',
-            escapeshellarg($branch),
-            escapeshellarg($gitPath),
-            escapeshellarg($workDir . '/repo')
+        // 使用 proc_open 安全执行 git clone
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open(
+            ['git', 'clone', '--branch', $branch, $gitPath, $workDir . '/repo'],
+            $descriptorspec,
+            $pipes,
+            null,
+            null
         );
         
-        exec($cmd, $output, $returnCode);
+        if (!is_resource($process)) {
+            throw new \RuntimeException('无法启动 git clone 进程');
+        }
+        
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $returnCode = proc_close($process);
         
         if ($returnCode !== 0) {
-            throw new \RuntimeException('克隆仓库失败: ' . implode("\n", $output));
+            throw new \RuntimeException('克隆仓库失败: ' . $error);
         }
     }
     
@@ -237,21 +254,44 @@ class ActionsRunner
             
             $log[] = "$ {$line}";
             
-            // 安全转义命令参数
-            $escapedLine = escapeshellcmd($line);
+            // 使用 proc_open 安全执行命令
+            $descriptorspec = [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ];
             
-            $cmd = sprintf(
-                'cd %s && %s %s 2>&1',
-                escapeshellarg($repoDir),
-                $envStr,
-                $escapedLine
+            // 构建环境变量
+            $envArray = [];
+            foreach ($env as $key => $value) {
+                $envArray[] = "{$key}={$value}";
+            }
+            
+            $process = proc_open(
+                $line,
+                $descriptorspec,
+                $pipes,
+                $repoDir,
+                $envArray
             );
             
-            exec($cmd, $output, $returnCode);
-            $log = array_merge($log, $output);
-            
-            if ($returnCode !== 0) {
-                $log[] = "Error: Command exited with code {$returnCode}";
+            if (is_resource($process)) {
+                fclose($pipes[0]);
+                $output = explode("\n", trim(stream_get_contents($pipes[1])));
+                $error = stream_get_contents($pipes[2]);
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                $returnCode = proc_close($process);
+                
+                $log = array_merge($log, $output);
+                
+                if ($returnCode !== 0) {
+                    $log[] = "Error: Command exited with code {$returnCode}";
+                    $log[] = $error;
+                    return ['success' => false, 'log' => $log];
+                }
+            } else {
+                $log[] = "Error: Failed to start process";
                 return ['success' => false, 'log' => $log];
             }
         }
@@ -277,16 +317,35 @@ class ActionsRunner
             case 'actions/setup-php':
                 $version = $with['php-version'] ?? '8.2';
                 $log[] = "Setting up PHP {$version}";
-                // 检查 PHP 版本
-                exec('php -v', $output);
-                $log = array_merge($log, $output);
+                // 检查 PHP 版本（使用 proc_open）
+                $descriptorspec = [
+                    0 => ['pipe', 'r'],
+                    1 => ['pipe', 'w'],
+                    2 => ['pipe', 'w'],
+                ];
+                $process = proc_open(['php', '-v'], $descriptorspec, $pipes);
+                if (is_resource($process)) {
+                    fclose($pipes[0]);
+                    $output = explode("\n", trim(stream_get_contents($pipes[1])));
+                    fclose($pipes[1]);
+                    fclose($pipes[2]);
+                    proc_close($process);
+                    $log = array_merge($log, $output);
+                }
                 return ['success' => true, 'log' => $log];
                 
             case 'actions/setup-node':
                 $version = $with['node-version'] ?? '18';
                 $log[] = "Setting up Node.js {$version}";
-                exec('node --version', $output);
-                $log = array_merge($log, $output);
+                $process = proc_open(['node', '--version'], $descriptorspec, $pipes);
+                if (is_resource($process)) {
+                    fclose($pipes[0]);
+                    $output = explode("\n", trim(stream_get_contents($pipes[1])));
+                    fclose($pipes[1]);
+                    fclose($pipes[2]);
+                    proc_close($process);
+                    $log = array_merge($log, $output);
+                }
                 return ['success' => true, 'log' => $log];
                 
             default:

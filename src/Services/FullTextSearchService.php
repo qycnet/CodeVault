@@ -83,17 +83,35 @@ class FullTextSearchService
         $gitPath = $repo['git_path'];
         $documents = [];
         
-        // 获取所有文件
-        $cmd = sprintf(
-            'cd %s && git ls-tree -r --name-only HEAD 2>/dev/null',
-            escapeshellarg($gitPath)
+        // 获取所有文件（使用 proc_open）
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open(
+            ['git', 'ls-tree', '-r', '--name-only', 'HEAD'],
+            $descriptorspec,
+            $pipes,
+            $gitPath
         );
         
-        exec($cmd, $files, $returnCode);
+        if (!is_resource($process)) {
+            return false;
+        }
+        
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $returnCode = proc_close($process);
         
         if ($returnCode !== 0) {
             return false;
         }
+        
+        $files = explode("\n", trim($output));
         
         foreach ($files as $file) {
             // 跳过二进制文件和大文件
@@ -393,16 +411,33 @@ class FullTextSearchService
         $repos = Connection::query($sql, $params);
         
         foreach ($repos as $repo) {
-            $cmd = sprintf(
-                'cd %s && git grep -n --no-color -F %s 2>/dev/null | head -100',
-                escapeshellarg($repo['git_path']),
-                escapeshellarg($query)
+            // 使用 proc_open 安全执行 git grep
+            $descriptorspec = [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ];
+            
+            $process = proc_open(
+                ['git', 'grep', '-n', '--no-color', '-F', $query],
+                $descriptorspec,
+                $pipes,
+                $repo['git_path']
             );
             
-            exec($cmd, $output, $returnCode);
+            if (!is_resource($process)) {
+                continue;
+            }
+            
+            fclose($pipes[0]);
+            $output = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $returnCode = proc_close($process);
             
             if ($returnCode === 0 && !empty($output)) {
-                foreach ($output as $line) {
+                $lines = explode("\n", trim($output));
+                foreach ($lines as $line) {
                     if (preg_match('/^(.+?):(\d+):(.*)$/', $line, $matches)) {
                         $results[] = [
                             'repo_id' => $repo['id'],
