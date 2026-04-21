@@ -17,6 +17,8 @@
   <img src="https://img.shields.io/badge/PHP-8.0+-blue" alt="PHP">
   <img src="https://img.shields.io/badge/Vue-3-green" alt="Vue">
   <img src="https://img.shields.io/badge/License-Apache--2.0-orange" alt="License">
+  <img src="https://img.shields.io/badge/数据库表-122-blue" alt="数据库表">
+  <img src="https://img.shields.io/badge/服务层-50+-purple" alt="服务层">
 </p>
 
 ---
@@ -26,12 +28,15 @@
 | 指标 | 数据 |
 |------|------|
 | 完成度 | **100%** |
-| 代码文件 | **161+** 个 |
-| 代码行数 | **400,000+** 行 |
-| 数据库表 | **80+** 个 |
+| 代码文件 | **471+** 个 |
+| 代码行数 | **61,400+** 行 |
+| 数据库表 | **122** 个 |
+| 迁移文件 | **20** 个 |
 | API 端点 | **200+** 个 |
 | 测试用例 | **95+** 个 |
 | 支持语言 | **11 种** |
+| 服务层 | **50+** 个 |
+| 控制器 | **32+** 个 |
 
 ---
 
@@ -533,9 +538,63 @@ composer install
 
 ---
 
+## 功能路线图
+
+```
+✅ Phase 1-3  ──► 核心功能（用户/仓库/Git/Issue/PR/Actions/通知/API）
+✅ Phase 4    ──► 社区功能（Discussions/Projects/Sponsors）
+✅ Phase 5-6  ──► 体验优化（移动端/性能/i18n/Dark Mode/快捷键/LFS）
+✅ Phase 7-8  ──► 开发者工具（CLI/安全扫描/Gists/Wiki/Webhooks）
+✅ Phase 9    ──► 开发者体验（导入导出/统计/API文档）
+✅ Phase 10   ──► 企业级功能（SSO/审计/容器仓库/多租户/合规/高可用）
+✅ Phase 11   ──► 协作增强（Pages/Gists增强/Wiki增强/Webhooks增强）
+📋 未来规划   ──► 可选扩展（社交功能/第三方集成/数据分析/移动App）
+```
+
+---
+
+## 贡献指南
+
+欢迎贡献代码！请遵循以下步骤：
+
+1. Fork 本仓库
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'feat: 添加某个功能'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
+
+### 代码规范
+
+- PHP 代码遵循 PSR-12 规范
+- 提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/)
+- 所有新功能需添加测试用例
+
+---
+
+## 联系方式
+
+- **项目地址**: https://github.com/qycnet/CodeVault
+- **问题反馈**: https://github.com/qycnet/CodeVault/issues
+
+---
+
 ## License
 
 Apache License 2.0
+
+Copyright (c) 2024-2026 CodeVault
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 ---
 
