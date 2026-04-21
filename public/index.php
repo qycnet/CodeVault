@@ -235,6 +235,37 @@ $routes = [
     'GET /api/lfs/stats' => ['LfsController', 'stats'],
     'POST /api/lfs/cleanup' => ['LfsController', 'cleanup'],
     
+    // P0 功能完善 API
+    // API Token 管理
+    'GET /api/tokens' => ['ApiTokenController', 'list'],
+    'POST /api/tokens' => ['ApiTokenController', 'create'],
+    'PUT /api/tokens' => ['ApiTokenController', 'update'],
+    'DELETE /api/tokens' => ['ApiTokenController', 'delete'],
+    'GET /api/tokens/scopes' => ['ApiTokenController', 'getScopes'],
+    
+    // OAuth2 授权
+    'GET /api/oauth/apps' => ['OAuthController', 'listApps'],
+    'POST /api/oauth/apps' => ['OAuthController', 'registerApp'],
+    'PUT /api/oauth/apps' => ['OAuthController', 'updateApp'],
+    'DELETE /api/oauth/apps' => ['OAuthController', 'deleteApp'],
+    'POST /api/oauth/apps/regenerate' => ['OAuthController', 'regenerateSecret'],
+    'GET /api/oauth/authorize' => ['OAuthController', 'authorize'],
+    'POST /api/oauth/authorize' => ['OAuthController', 'grantAuthorization'],
+    'POST /api/oauth/token' => ['OAuthController', 'token'],
+    'GET /api/oauth/authorizations' => ['OAuthController', 'listAuthorizations'],
+    'DELETE /api/oauth/authorizations' => ['OAuthController', 'revokeAuthorization'],
+    
+    // 工作流调度
+    'POST /api/workflows/schedule' => ['ActionsController', 'triggerScheduled'],
+    'GET /api/workflows/schedule' => ['ActionsController', 'getSchedule'],
+    
+    // 通知中心
+    'GET /api/notifications' => ['NotificationController', 'list'],
+    'GET /api/notifications/unread-count' => ['NotificationController', 'unreadCount'],
+    'POST /api/notifications/:id/read' => ['NotificationController', 'markRead'],
+    'POST /api/notifications/read-all' => ['NotificationController', 'markAllRead'],
+    'DELETE /api/notifications/:id' => ['NotificationController', 'delete'],
+    
     'GET /api/user/stars' => ['StarController', 'listUserStars'],
     
     // Star API

@@ -107,6 +107,49 @@ class NotificationController
     }
     
     /**
+     * 获取未读数量
+     */
+    public function unreadCount(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $count = Connection::queryOne(
+            "SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0",
+            [$user['id']]
+        );
+        
+        return [
+            'success' => true,
+            'count' => (int) $count['count'],
+        ];
+    }
+    
+    /**
+     * 标记所有为已读
+     */
+    public function markAllRead(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $affected = Connection::execute(
+            "UPDATE notifications SET is_read = 1, read_at = NOW() WHERE user_id = ? AND is_read = 0",
+            [$user['id']]
+        );
+        
+        return [
+            'success' => true,
+            'message' => "已标记 {$affected} 条通知为已读",
+            'affected' => $affected,
+        ];
+    }
+    
+    /**
      * 创建通知（内部方法）
      */
     public static function create(array $data): int

@@ -384,4 +384,66 @@ class ActionsController
         
         return ['success' => true, 'message' => '已取消'];
     }
+    
+    /**
+     * 触发定时工作流
+     */
+    public function triggerScheduled(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $scheduler = new \CodeVault\Services\SchedulerService();
+        $triggered = $scheduler->checkScheduledWorkflows();
+        
+        return [
+            'success' => true,
+            'triggered' => $triggered,
+            'count' => count($triggered),
+        ];
+    }
+    
+    /**
+     * 获取工作流调度信息
+     */
+    public function getSchedule(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $workflowId = (int) ($data['workflow_id'] ?? 0);
+        
+        if ($workflowId <= 0) {
+            return ['success' => false, 'message' => '无效的工作流ID'];
+        }
+        
+        $scheduler = new \CodeVault\Services\SchedulerService();
+        $schedule = $scheduler->getWorkflowSchedule($workflowId);
+        
+        return [
+            'success' => true,
+            'schedule' => $schedule,
+        ];
+    }
+    
+    /**
+     * 验证 Cron 表达式
+     */
+    public function validateCron(array $data): array
+    {
+        $cronExpr = $data['cron'] ?? '';
+        
+        if (empty($cronExpr)) {
+            return ['success' => false, 'message' => 'Cron 表达式不能为空'];
+        }
+        
+        $scheduler = new \CodeVault\Services\SchedulerService();
+        $result = $scheduler->validateCron($cronExpr);
+        
+        return $result;
+    }
 }
