@@ -1,0 +1,545 @@
+/* CodeVault - 移动端适配样式 */
+
+/* ==================== 响应式断点 ==================== */
+/* 
+  Mobile: < 576px
+  Tablet: 576px - 768px
+  Desktop: 768px - 992px
+  Large: 992px - 1200px
+  Extra Large: > 1200px
+*/
+
+/* ==================== 移动端基础样式 ==================== */
+
+/* 移动端隐藏/显示 */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: block !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* ==================== 移动端导航 ==================== */
+
+/* 底部导航栏 */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--bg-color, #fff);
+  border-top: 1px solid var(--border-color, #e1e4e8);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  color: var(--text-secondary, #666);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.mobile-bottom-nav .nav-item.active {
+  color: var(--primary-color, #0366d6);
+}
+
+.mobile-bottom-nav .nav-item .icon {
+  font-size: 20px;
+}
+
+/* 移动端抽屉菜单 */
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-color, #fff);
+  z-index: 2000;
+  transition: left 0.3s ease;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-drawer.open {
+  left: 0;
+}
+
+.mobile-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-drawer-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==================== 移动端头部 ==================== */
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ==================== 移动端卡片 ==================== */
+
+@media (max-width: 768px) {
+  .card {
+    margin: 8px;
+    border-radius: 8px;
+  }
+  
+  .card-header {
+    padding: 12px;
+  }
+  
+  .card-body {
+    padding: 12px;
+  }
+  
+  /* 统计卡片 */
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+}
+
+/* ==================== 移动端列表 ==================== */
+
+@media (max-width: 768px) {
+  .list-item {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .list-item-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .list-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  /* 讨论列表 */
+  .discussion-item {
+    flex-direction: column;
+    padding: 12px;
+  }
+  
+  .vote-section {
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  
+  /* 项目卡片 */
+  .project-card {
+    padding: 12px;
+  }
+  
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ==================== 移动端表单 ==================== */
+
+@media (max-width: 768px) {
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-label {
+    margin-bottom: 8px;
+  }
+  
+  .form-input,
+  .form-textarea,
+  .form-select {
+    font-size: 16px; /* 防止 iOS 自动缩放 */
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+/* ==================== 移动端对话框 ==================== */
+
+@media (max-width: 768px) {
+  .dialog,
+  .modal {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  .dialog-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color, #e1e4e8);
+  }
+  
+  .dialog-body {
+    padding: 16px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  
+  .dialog-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border-color, #e1e4e8);
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-color, #fff);
+  }
+}
+
+/* ==================== 移动端表格 ==================== */
+
+@media (max-width: 768px) {
+  /* 表格响应式 */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* 或卡片式表格 */
+  .table-mobile {
+    display: block;
+  }
+  
+  .table-mobile thead {
+    display: none;
+  }
+  
+  .table-mobile tbody {
+    display: block;
+  }
+  
+  .table-mobile tr {
+    display: block;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color, #e1e4e8);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  
+  .table-mobile td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border: none;
+  }
+  
+  .table-mobile td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary, #666);
+  }
+}
+
+/* ==================== 移动端代码块 ==================== */
+
+@media (max-width: 768px) {
+  .code-block {
+    font-size: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .code-block pre {
+    padding: 12px;
+    margin: 0;
+  }
+  
+  /* Diff 视图 */
+  .diff-view {
+    flex-direction: column;
+  }
+  
+  .diff-view .diff-panel {
+    width: 100%;
+  }
+}
+
+/* ==================== 移动端看板 ==================== */
+
+@media (max-width: 768px) {
+  .kanban-board {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  
+  .kanban-column {
+    width: 100%;
+    min-width: 100%;
+    margin-bottom: 16px;
+  }
+  
+  .kanban-cards {
+    max-height: none;
+  }
+}
+
+/* ==================== 移动端搜索 ==================== */
+
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+  
+  .search-filters {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .search-filter {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+/* ==================== 移动端用户信息 ==================== */
+
+@media (max-width: 768px) {
+  .user-profile {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .user-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+  }
+  
+  .user-stats {
+    justify-content: center;
+  }
+}
+
+/* ==================== 移动端仓库页面 ==================== */
+
+@media (max-width: 768px) {
+  .repo-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .repo-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  
+  .repo-nav-item {
+    white-space: nowrap;
+  }
+  
+  .repo-stats {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .file-tree {
+    font-size: 14px;
+  }
+  
+  .file-tree-item {
+    padding: 8px;
+  }
+}
+
+/* ==================== 移动端 Issue/PR ==================== */
+
+@media (max-width: 768px) {
+  .issue-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .issue-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .comment-item {
+    padding: 12px;
+  }
+  
+  .comment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .comment-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ==================== 触摸手势 ==================== */
+
+/* 滑动删除 */
+.swipe-action {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-action-content {
+  transition: transform 0.3s ease;
+}
+
+.swipe-action-buttons {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  transform: translateX(100%);
+}
+
+.swipe-action-buttons .btn {
+  border-radius: 0;
+  height: 100%;
+}
+
+/* 下拉刷新 */
+.pull-to-refresh {
+  position: relative;
+  overflow-y: auto;
+}
+
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -50px;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: top 0.3s ease;
+}
+
+.pull-to-refresh-indicator.visible {
+  top: 0;
+}
+
+/* ==================== 安全区域适配 ==================== */
+
+/* iOS 安全区域 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-bottom-nav {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+  
+  .dialog-footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  
+  .page-content {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ==================== 暗色主题移动端 ==================== */
+
+:root.dark .mobile-bottom-nav {
+  background: #1c1c1e;
+  border-top-color: #3a3a3c;
+}
+
+:root.dark .mobile-drawer {
+  background: #1c1c1e;
+}
+
+:root.dark .dialog-footer {
+  background: #1c1c1e;
+  border-top-color: #3a3a3c;
+}
+
+/* ==================== 打印样式 ==================== */
+
+@media print {
+  .mobile-bottom-nav,
+  .mobile-drawer,
+  .mobile-drawer-overlay {
+    display: none !important;
+  }
+  
+  .page-content {
+    padding-bottom: 0;
+  }
+}
