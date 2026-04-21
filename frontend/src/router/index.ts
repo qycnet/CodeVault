@@ -226,6 +226,18 @@ const routes: RouteRecordRaw[] = [
     name: 'Webhooks',
     component: () => import('@/views/WebhooksPage.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/repos/:owner/:repo/actions',
+    name: 'Actions',
+    component: () => import('@/views/Actions.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings/tokens',
+    name: 'ApiTokens',
+    component: () => import('@/views/ApiTokens.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
