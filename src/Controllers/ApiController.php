@@ -172,14 +172,24 @@ class ApiController
     public function getUser(array $data): array
     {
         $userId = (int) ($data['id'] ?? 0);
-        if ($userId <= 0) {
+        $username = trim($data['username'] ?? '');
+        
+        if ($userId <= 0 && empty($username)) {
             return ['success' => false, 'message' => '无效的用户ID'];
         }
         
-        $user = Connection::queryOne(
-            "SELECT id, username, email, created_at, is_admin FROM users WHERE id = ?",
-            [$userId]
-        );
+        $sql = "SELECT id, username, email, bio, location, website, created_at, is_admin FROM users WHERE ";
+        $params = [];
+        
+        if ($userId > 0) {
+            $sql .= "id = ?";
+            $params[] = $userId;
+        } else {
+            $sql .= "username = ?";
+            $params[] = $username;
+        }
+        
+        $user = Connection::queryOne($sql, $params);
         
         if (!$user) {
             return ['success' => false, 'message' => '用户不存在'];
@@ -188,7 +198,7 @@ class ApiController
         // 获取用户的仓库数量
         $repoCount = Connection::queryOne(
             "SELECT COUNT(*) as count FROM repositories WHERE user_id = ?",
-            [$userId]
+            [$user['id']]
         )['count'];
         
         return [
@@ -198,6 +208,328 @@ class ApiController
                 'repos' => (int) $repoCount,
             ],
         ];
+    }
+    
+    /**
+     * 更新用户资料
+     */
+    public function updateProfile(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $fields = [];
+        $params = [];
+        
+        if (isset($data['email'])) {
+            $fields[] = "email = ?";
+            $params[] = trim($data['email']);
+        }
+        
+        if (isset($data['bio'])) {
+            $fields[] = "bio = ?";
+            $params[] = trim($data['bio']);
+        }
+        
+        if (isset($data['location'])) {
+            $fields[] = "location = ?";
+            $params[] = trim($data['location']);
+        }
+        
+        if (isset($data['website'])) {
+            $fields[] = "website = ?";
+            $params[] = trim($data['website']);
+        }
+        
+        if (empty($fields)) {
+            return ['success' => true, 'message' => '无更新'];
+        }
+        
+        $params[] = $user['id'];
+        
+        Connection::execute(
+            "UPDATE users SET " . implode(', ', $fields) . " WHERE id = ?",
+            $params
+        );
+        
+        return ['success' => true, 'message' => '资料已更新'];
+    }
+    
+    /**
+     * 获取组织详情
+     */
+    public function getOrg(array $data): array
+    {
+        $name = trim($data['name'] ?? '');
+        
+        if (empty($name)) {
+            return ['success' => false, 'message' => '参数错误'];
+        }
+        
+        $org = Connection::queryOne(
+            "SELECT * FROM organizations WHERE name = ?",
+            [$name]
+        );
+        
+        if (!$org) {
+            return ['success' => false, 'message' => '组织不存在'];
+        }
+        
+        return [
+            'success' => true,
+            'org' => $org,
+        ];
+    }
+    
+    /**
+     * 更新组织
+     */
+    public function updateOrg(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $name = trim($data['name'] ?? '');
+        
+        if (empty($name)) {
+            return ['success' => false, 'message' => '参数错误'];
+        }
+        
+        // 检查权限
+        $member = Connection::queryOne(
+            "SELECT * FROM org_members WHERE org_id = (SELECT id FROM organizations WHERE name = ?) AND user_id = ? AND role = 'admin'",
+            [$name, $user['id']]
+        );
+        
+        if (!$member) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        $fields = [];
+        $params = [];
+        
+        if (isset($data['display_name'])) {
+            $fields[] = "display_name = ?";
+            $params[] = trim($data['display_name']);
+        }
+        
+        if (isset($data['description'])) {
+            $fields[] = "description = ?";
+            $params[] = trim($data['description']);
+        }
+        
+        if (empty($fields)) {
+            return ['success' => true, 'message' => '无更新'];
+        }
+        
+        $params[] = $name;
+        
+        Connection::execute(
+            "UPDATE organizations SET " . implode(', ', $fields) . " WHERE name = ?",
+            $params
+        );
+        
+        return ['success' => true, 'message' => '组织已更新'];
+    }
+    
+    /**
+     * 删除组织
+     */
+    public function deleteOrg(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $name = trim($data['name'] ?? '');
+        
+        // 检查权限
+        $org = Connection::queryOne("SELECT * FROM organizations WHERE name = ?", [$name]);
+        if (!$org) {
+            return ['success' => false, 'message' => '组织不存在'];
+        }
+        
+        $member = Connection::queryOne(
+            "SELECT * FROM org_members WHERE org_id = ? AND user_id = ? AND role = 'admin'",
+            [$org['id'], $user['id']]
+        );
+        
+        if (!$member) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        // 删除组织及相关数据
+        Connection::execute("DELETE FROM org_members WHERE org_id = ?", [$org['id']]);
+        Connection::execute("DELETE FROM organizations WHERE id = ?", [$org['id']]);
+        
+        return ['success' => true, 'message' => '组织已删除'];
+    }
+    
+    /**
+     * 获取组织成员
+     */
+    public function listOrgMembers(array $data): array
+    {
+        $name = trim($data['name'] ?? '');
+        
+        if (empty($name)) {
+            return ['success' => false, 'message' => '参数错误'];
+        }
+        
+        $members = Connection::query(
+            "SELECT om.*, u.username, u.email 
+             FROM org_members om 
+             JOIN users u ON om.user_id = u.id 
+             WHERE om.org_id = (SELECT id FROM organizations WHERE name = ?)
+             ORDER BY om.role DESC, om.created_at",
+            [$name]
+        );
+        
+        return [
+            'success' => true,
+            'members' => $members,
+        ];
+    }
+    
+    /**
+     * 添加组织成员
+     */
+    public function addOrgMember(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $orgName = trim($data['name'] ?? '');
+        $username = trim($data['username'] ?? '');
+        $role = $data['role'] ?? 'member';
+        
+        // 检查权限
+        $org = Connection::queryOne("SELECT * FROM organizations WHERE name = ?", [$orgName]);
+        if (!$org) {
+            return ['success' => false, 'message' => '组织不存在'];
+        }
+        
+        $adminMember = Connection::queryOne(
+            "SELECT * FROM org_members WHERE org_id = ? AND user_id = ? AND role = 'admin'",
+            [$org['id'], $user['id']]
+        );
+        
+        if (!$adminMember) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        // 查找用户
+        $targetUser = Connection::queryOne("SELECT * FROM users WHERE username = ?", [$username]);
+        if (!$targetUser) {
+            return ['success' => false, 'message' => '用户不存在'];
+        }
+        
+        // 检查是否已是成员
+        $existing = Connection::queryOne(
+            "SELECT * FROM org_members WHERE org_id = ? AND user_id = ?",
+            [$org['id'], $targetUser['id']]
+        );
+        
+        if ($existing) {
+            return ['success' => false, 'message' => '用户已是组织成员'];
+        }
+        
+        Connection::insert(
+            "INSERT INTO org_members (org_id, user_id, role, created_at) VALUES (?, ?, ?, NOW())",
+            [$org['id'], $targetUser['id'], $role]
+        );
+        
+        return ['success' => true, 'message' => '成员已添加'];
+    }
+    
+    /**
+     * 更新组织成员角色
+     */
+    public function updateOrgMember(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $orgName = trim($data['name'] ?? '');
+        $username = trim($data['username'] ?? '');
+        $role = $data['role'] ?? 'member';
+        
+        // 检查权限
+        $org = Connection::queryOne("SELECT * FROM organizations WHERE name = ?", [$orgName]);
+        if (!$org) {
+            return ['success' => false, 'message' => '组织不存在'];
+        }
+        
+        $adminMember = Connection::queryOne(
+            "SELECT * FROM org_members WHERE org_id = ? AND user_id = ? AND role = 'admin'",
+            [$org['id'], $user['id']]
+        );
+        
+        if (!$adminMember) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        $targetUser = Connection::queryOne("SELECT * FROM users WHERE username = ?", [$username]);
+        if (!$targetUser) {
+            return ['success' => false, 'message' => '用户不存在'];
+        }
+        
+        Connection::execute(
+            "UPDATE org_members SET role = ? WHERE org_id = ? AND user_id = ?",
+            [$role, $org['id'], $targetUser['id']]
+        );
+        
+        return ['success' => true, 'message' => '角色已更新'];
+    }
+    
+    /**
+     * 移除组织成员
+     */
+    public function removeOrgMember(array $data): array
+    {
+        $user = Session::user();
+        if (!$user) {
+            return ['success' => false, 'message' => '未登录'];
+        }
+        
+        $orgName = trim($data['name'] ?? '');
+        $username = trim($data['username'] ?? '');
+        
+        // 检查权限
+        $org = Connection::queryOne("SELECT * FROM organizations WHERE name = ?", [$orgName]);
+        if (!$org) {
+            return ['success' => false, 'message' => '组织不存在'];
+        }
+        
+        $adminMember = Connection::queryOne(
+            "SELECT * FROM org_members WHERE org_id = ? AND user_id = ? AND role = 'admin'",
+            [$org['id'], $user['id']]
+        );
+        
+        if (!$adminMember) {
+            return ['success' => false, 'message' => '无权操作'];
+        }
+        
+        $targetUser = Connection::queryOne("SELECT * FROM users WHERE username = ?", [$username]);
+        if (!$targetUser) {
+            return ['success' => false, 'message' => '用户不存在'];
+        }
+        
+        Connection::execute(
+            "DELETE FROM org_members WHERE org_id = ? AND user_id = ?",
+            [$org['id'], $targetUser['id']]
+        );
+        
+        return ['success' => true, 'message' => '成员已移除'];
     }
     
     /**

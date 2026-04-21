@@ -156,6 +156,16 @@ $routes = [
     'DELETE /api/repos/milestones' => ['ApiController', 'deleteMilestone'],
     'GET /api/orgs' => ['ApiController', 'listOrgs'],
     'POST /api/orgs' => ['ApiController', 'createOrg'],
+    'GET /api/orgs/detail' => ['ApiController', 'getOrg'],
+    'PUT /api/orgs' => ['ApiController', 'updateOrg'],
+    'DELETE /api/orgs' => ['ApiController', 'deleteOrg'],
+    'GET /api/orgs/members' => ['ApiController', 'listOrgMembers'],
+    'POST /api/orgs/members' => ['ApiController', 'addOrgMember'],
+    'PUT /api/orgs/members' => ['ApiController', 'updateOrgMember'],
+    'DELETE /api/orgs/members' => ['ApiController', 'removeOrgMember'],
+    
+    // 用户资料 API
+    'PUT /api/user/profile' => ['ApiController', 'updateProfile'],
     
     // Actions API
     'GET /api/actions/workflows' => ['ActionsController', 'listWorkflows'],
