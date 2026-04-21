@@ -4,62 +4,176 @@
 
 ## 功能特性
 
-### 用户系统
+### P0 - 核心功能 ✅
+
+#### 用户系统
 - ✅ 邮箱注册（验证码验证）
 - ✅ 用户登录（Session 管理）
 - ✅ SSH Key 管理（支持 RSA/ED25519）
 
-### 代码仓库
+#### 代码仓库
 - ✅ 创建/列表/详情/更新/删除仓库
 - ✅ Git 裸仓库自动初始化
 - ✅ 公开/私有仓库支持
 - ✅ 访问权限控制
 
-### Git 操作
+#### Git 操作
 - ✅ Clone/Push/Pull 操作
 - ✅ SSH Key 认证
 - ✅ 状态查询
 - ✅ 提交历史查看
 - ✅ 分支管理
 
-### Issue 管理
+#### Issue 管理
 - ✅ 创建/列表/详情/更新/删除 Issue
 - ✅ 状态管理（open/closed）
 - ✅ 权限验证
 
-### Pull Request
+#### Pull Request
 - ✅ 创建/查看/合并/关闭 PR
 - ✅ 代码 Diff 查看
 - ✅ 行内评论
 - ✅ 分支验证
 
-### 评论系统
+#### 评论系统
 - ✅ Issue 评论
 - ✅ PR 评论
 - ✅ 行内代码评论
 - ✅ 编辑/删除评论
 
-### 前端界面
-- ✅ Vue 3 + TypeScript + Element Plus
-- ✅ 响应式设计
-- ✅ 文件浏览器
-- ✅ 提交历史页
-- ✅ 分支管理页
-- ✅ 搜索功能
-- ✅ 通知中心
-- ✅ 用户设置
+#### Actions 执行引擎
+- ✅ 工作流定义（YAML）
+- ✅ 工作流执行
+- ✅ 日志查看
+- ✅ 状态检查
 
-### 高级功能
-- ✅ CI/CD 工作流管理
-- ✅ 项目看板（Projects）
-- ✅ 组织与团队协作
-- ✅ Releases 版本发布
-- ✅ Wiki 文档
-- ✅ Webhooks
-- ✅ Stars/Forks/Watch
-- ✅ 标签与里程碑
-- ✅ 管理后台
-- ✅ API 文档
+#### Email 通知
+- ✅ 邮件发送
+- ✅ Issue/PR 通知
+- ✅ 评论通知
+
+#### REST API
+- ✅ 完整 API 接口
+- ✅ JSON 响应
+- ✅ 错误处理
+
+#### 分支保护规则
+- ✅ 保护分支设置
+- ✅ PR 必须审核
+- ✅ 状态检查要求
+
+#### 文件上传
+- ✅ Web 文件上传
+- ✅ 安全文件类型检查
+- ✅ 路径验证
+
+---
+
+### P1 - 高级功能 ✅
+
+#### 1. 安全扫描
+- ✅ 依赖漏洞扫描（npm/packagist/pypi/maven/go）
+- ✅ 代码安全扫描（敏感信息泄露/SQL注入/XSS/命令注入）
+- ✅ 已知漏洞数据库（CVE 集成）
+- ✅ 扫描历史记录
+
+#### 2. 代码审查增强
+- ✅ 审批流程（approved/changes_requested/commented）
+- ✅ 批量评论功能
+- ✅ 分支保护规则检查
+- ✅ 合并前状态检查
+- ✅ 审查统计
+
+#### 3. 组织团队管理
+- ✅ 团队 CRUD 操作
+- ✅ 成员管理（添加/移除/角色）
+- ✅ 仓库权限分配
+- ✅ 批量权限操作
+- ✅ 组织成员管理
+
+#### 4. 高级搜索
+- ✅ 高级搜索语法支持
+  - `repo:owner/name` 指定仓库
+  - `user:username` 指定用户
+  - `lang:language` 指定语言
+  - `is:issue/is:pr/is:open/is:closed` 状态过滤
+  - `label:name` 标签过滤
+  - `created:>2024-01-01` 日期过滤
+- ✅ 仓库/Issue/PR/代码/用户 统一搜索
+
+#### 5. 依赖漏洞告警
+- ✅ 自动检测依赖漏洞
+- ✅ 多语言包管理器支持
+- ✅ 漏洞等级分类
+
+#### 6. 管理后台增强
+- ✅ 系统概览仪表盘
+- ✅ 用户管理（禁用/启用/管理员设置）
+- ✅ 仓库管理（列表/删除）
+- ✅ 系统配置管理
+- ✅ 日志查看
+- ✅ 数据清理
+
+#### 7. Redis 缓存优化
+- ✅ 仓库/用户/Issue/提交/文件缓存
+- ✅ remember 回调模式
+- ✅ 计数器支持
+- ✅ 模式删除
+
+#### 8. 队列系统
+- ✅ 基于 Redis Stream 的消息队列
+- ✅ 延迟任务支持
+- ✅ Git/Email/Notification/Webhook 队列
+- ✅ 后备直接执行模式
+
+---
+
+### P2 - 扩展功能 ✅
+
+#### 1. Dark Mode
+- ✅ CSS 变量主题切换
+- ✅ Element Plus 暗色主题覆盖
+- ✅ 本地存储持久化
+
+#### 2. 快捷键支持
+- ✅ `Ctrl+/` 搜索
+- ✅ `Ctrl+N` 新建仓库
+- ✅ `Ctrl+I` 我的 Issue
+- ✅ `Ctrl+P` 我的 PR
+- ✅ `Shift+?` 显示帮助
+- ✅ `Escape` 关闭弹窗
+
+#### 3. 仓库模板
+- ✅ 从模板创建仓库
+- ✅ 设置/取消模板
+- ✅ 模板列表
+- ✅ 官方模板（PHP/Vue/Python/Go）
+
+#### 4. Issue/PR 模板
+- ✅ 从 .github/ISSUE_TEMPLATE/ 读取
+- ✅ 默认 Bug 报告模板
+- ✅ 默认功能请求模板
+- ✅ PR 模板支持
+
+#### 5. 全文代码搜索
+- ✅ Elasticsearch / Meilisearch 支持
+- ✅ 仓库代码索引
+- ✅ 高级搜索（语言/文件路径过滤）
+- ✅ 后备 git grep 方案
+
+#### 6. GraphQL API
+- ✅ Query: viewer/repository/repositories/user/users/issue/pullRequest/search
+- ✅ Mutation: createRepository/createIssue/createPullRequest/updateIssue/closeIssue
+- ✅ 完整 Schema 定义
+- ✅ GraphQL Playground 支持
+
+#### 7. Git LFS
+- ✅ LFS 批量 API（上传/下载）
+- ✅ 对象存储（分片存储）
+- ✅ SHA256 验证
+- ✅ 清理未引用对象
+
+---
 
 ## 技术栈
 
@@ -67,6 +181,7 @@
 - **数据库**: MySQL 5.7+
 - **前端**: Vue 3 + TypeScript + Element Plus + Vite
 - **缓存**: Redis 7.0+
+- **搜索**: Elasticsearch / Meilisearch
 - **容器化**: Docker + Docker Compose
 - **Git**: Git 2.0+
 
@@ -74,24 +189,34 @@
 
 - ✅ PDO 预处理防 SQL 注入
 - ✅ escapeshellarg() 防命令注入
+- ✅ 命令白名单限制
 - ✅ bcrypt 密码哈希 (cost=12)
-- ✅ Cookie 安全配置 (SameSite=Strict + Secure)
+- ✅ Cookie 安全配置 (SameSite=Lax + Secure)
 - ✅ CORS 白名单限制
 - ✅ Session 安全管理
-- ✅ XSS 防护（后端 htmlspecialchars + 前端 DOMPurify）
+- ✅ XSS 防护（后端 htmlspecialchars + 前端纯文本）
 - ✅ 邮箱格式验证
+- ✅ 文件上传黑名单
+- ✅ 权限验证
 
 ## 目录结构
 
 ```
 codevault/
 ├── config/                 # 配置文件
-│   ├── app.php            # 应用配置
-│   └── database.php       # 数据库配置
 ├── database/
 │   ├── migrations/        # 数据库迁移
 │   │   ├── 001_create_tables.sql
-│   │   └── 002_add_pr_tables.sql
+│   │   ├── 002_add_pr_tables.sql
+│   │   ├── 003_add_comments.sql
+│   │   ├── 004_add_notifications.sql
+│   │   ├── 005_add_projects.sql
+│   │   ├── 006_add_review.sql
+│   │   ├── 007_add_user_profile.sql
+│   │   ├── 008_add_p2_features.sql
+│   │   ├── 009_add_p1_features.sql
+│   │   ├── 010_add_p2_features.sql
+│   │   └── 011_add_p2_remaining.sql
 │   ├── migrate.php        # 迁移脚本
 │   └── schema.sql         # 完整表结构
 ├── frontend/              # Vue 3 前端项目
@@ -100,7 +225,8 @@ codevault/
 │   │   ├── components/    # 通用组件
 │   │   ├── api/           # API 封装
 │   │   ├── stores/        # Pinia 状态管理
-│   │   └── router/        # 路由配置
+│   │   ├── router/        # 路由配置
+│   │   └── utils/         # 工具函数
 │   ├── vite.config.ts     # Vite 配置
 │   └── package.json
 ├── public/
@@ -113,26 +239,28 @@ codevault/
 │   │   ├── IssueController.php
 │   │   ├── PRController.php
 │   │   ├── CommentController.php
-│   │   └── GitController.php
+│   │   ├── GitController.php
+│   │   ├── TeamController.php
+│   │   ├── AdminController.php
+│   │   ├── TemplateController.php
+│   │   ├── IssueTemplateController.php
+│   │   ├── GraphQLController.php
+│   │   ├── LfsController.php
+│   │   └── ...
 │   ├── Database/          # 数据库层
-│   │   └── Connection.php
 │   ├── Models/            # 模型
-│   │   ├── User.php
-│   │   ├── SshKey.php
-│   │   ├── VerificationCode.php
-│   │   ├── Repository.php
-│   │   ├── Issue.php
-│   │   ├── PullRequest.php
-│   │   └── Comment.php
 │   └── Services/          # 服务层
-│       ├── Session.php
-│       └── GitService.php
+│       ├── SecurityScanner.php
+│       ├── CodeReviewService.php
+│       ├── AdvancedSearchService.php
+│       ├── CacheService.php
+│       ├── QueueService.php
+│       ├── FullTextSearchService.php
+│       ├── GraphQLService.php
+│       ├── LfsService.php
+│       └── ...
 ├── tests/                 # 测试文件
-│   ├── Unit/
-│   ├── Security/
-│   └── TEST_REPORT.md
 ├── docs/                  # 文档
-│   └── DEPLOYMENT.md      # 部署指南
 ├── Dockerfile             # Docker 镜像
 ├── docker-compose.yml     # Docker Compose 配置
 └── README.md
@@ -145,7 +273,7 @@ codevault/
 - Redis >= 7.0
 - Git >= 2.0
 - Node.js >= 18.0
-- PHP 扩展：pdo, pdo_mysql, json, mbstring
+- PHP 扩展：pdo, pdo_mysql, json, mbstring, redis
 
 ## 快速部署
 
@@ -165,73 +293,46 @@ docker-compose up -d
 
 ### 手动部署
 
-#### 1. 克隆项目
-
 ```bash
+# 1. 克隆项目
 git clone https://github.com/qycnet/CodeVault.git
 cd codevault
-```
 
-#### 2. 安装依赖
-
-```bash
-# 安装前端依赖
+# 2. 安装前端依赖
 cd frontend
 npm install
 npm run build
 cd ..
-```
 
-#### 3. 配置环境变量
-
-```bash
-# 数据库配置
+# 3. 配置环境变量
 export DB_HOST=localhost
 export DB_PORT=3306
 export DB_NAME=codevault
 export DB_USER=codevault_user
 export DB_PASS=your_password
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
 
-# 应用配置
-export APP_URL=http://localhost
-export APP_DEBUG=true
-```
-
-#### 4. 创建数据库
-
-```bash
+# 4. 创建数据库
 mysql -u root -p << EOF
 CREATE DATABASE codevault DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'codevault_user'@'localhost' IDENTIFIED BY 'your_password';
 GRANT ALL PRIVILEGES ON codevault.* TO 'codevault_user'@'localhost';
 FLUSH PRIVILEGES;
 EOF
-```
 
-#### 5. 初始化数据库
-
-```bash
+# 5. 初始化数据库
 php database/migrate.php
-```
 
-#### 6. 创建 Git 仓库目录
-
-```bash
+# 6. 创建 Git 仓库目录
 sudo mkdir -p /var/git/repositories
-sudo chown -R www-data:www-data /var/git/repositories
-sudo chmod -R 755 /var/git/repositories
-```
+sudo mkdir -p /var/git/lfs
+sudo chown -R www-data:www-data /var/git
+sudo chmod -R 755 /var/git
 
-#### 7. 启动服务
-
-```bash
-# 开发环境
+# 7. 启动服务
 cd public
 php -S localhost:8000
-
-# 前端开发服务器
-cd frontend
-npm run dev
 ```
 
 ## API 接口
@@ -245,14 +346,6 @@ npm run dev
 | POST | /api/auth/login | 用户登录 |
 | POST | /api/auth/logout | 用户登出 |
 | GET | /api/auth/me | 获取当前用户信息 |
-
-### SSH Key 管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/ssh-keys | 获取 SSH Key 列表 |
-| POST | /api/ssh-keys | 添加 SSH Key |
-| DELETE | /api/ssh-keys | 删除 SSH Key |
 
 ### 仓库管理
 
@@ -269,9 +362,7 @@ npm run dev
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /api/repos/tree | 获取文件树 |
-| GET | /api/repos/blob | 获取文件内容 |
 | GET | /api/repos/commits | 获取提交历史 |
-| GET | /api/repos/commit | 获取提交详情 |
 | GET | /api/repos/branches | 获取分支列表 |
 | POST | /api/repos/branch | 创建分支 |
 | DELETE | /api/repos/branch | 删除分支 |
@@ -291,105 +382,100 @@ npm run dev
 |------|------|------|
 | GET | /api/pull-requests | 获取 PR 列表 |
 | POST | /api/pull-requests | 创建 PR |
-| GET | /api/pull-requests/detail | 获取 PR 详情 |
 | POST | /api/pull-requests/merge | 合并 PR |
 | POST | /api/pull-requests/close | 关闭 PR |
 
-### 评论
+### 安全扫描
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | /api/comments | 获取评论列表 |
-| POST | /api/comments | 创建评论 |
-| PUT | /api/comments | 更新评论 |
-| DELETE | /api/comments | 删除评论 |
+| POST | /api/security/scan | 执行安全扫描 |
+| GET | /api/security/history | 获取扫描历史 |
 
-## 使用示例
+### 代码审查
 
-### 1. 用户注册
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/reviews | 提交审查 |
+| POST | /api/reviews/batch-comments | 批量评论 |
+| GET | /api/reviews | 获取审查列表 |
+| GET | /api/reviews/stats | 审查统计 |
 
-```bash
-# 发送验证码
-curl -X POST http://localhost:8000/api/auth/send-code \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com"}'
+### 团队管理
 
-# 注册
-curl -X POST http://localhost:8000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "username": "testuser",
-    "password": "password123",
-    "code": "123456"
-  }'
-```
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/teams | 创建团队 |
+| GET | /api/teams | 获取团队列表 |
+| PUT | /api/teams | 更新团队 |
+| DELETE | /api/teams | 删除团队 |
+| POST | /api/teams/members | 添加成员 |
+| DELETE | /api/teams/members | 移除成员 |
 
-### 2. 创建仓库
+### 高级搜索
 
-```bash
-curl -X POST http://localhost:8000/api/repos \
-  -H "Content-Type: application/json" \
-  -b "codevault_session=your_session_cookie" \
-  -d '{
-    "name": "my-project",
-    "description": "My first project",
-    "is_private": false
-  }'
-```
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/search/advanced | 高级搜索 |
+| POST | /api/search/index | 索引仓库 |
+| GET | /api/search/code | 代码搜索 |
 
-### 3. 创建 Pull Request
+### 管理后台
 
-```bash
-curl -X POST http://localhost:8000/api/pull-requests \
-  -H "Content-Type: application/json" \
-  -b "codevault_session=your_session_cookie" \
-  -d '{
-    "repo_id": 1,
-    "title": "Feature: Add new feature",
-    "description": "Description...",
-    "source_branch": "feature/new-feature",
-    "target_branch": "main"
-  }'
-```
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/admin/dashboard | 系统概览 |
+| GET | /api/admin/users | 用户列表 |
+| POST | /api/admin/users/toggle | 禁用/启用用户 |
+| GET | /api/admin/repos | 仓库列表 |
+| GET | /api/admin/logs | 系统日志 |
 
-## Git 使用
+### GraphQL API
 
-### Clone 仓库
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/graphql | 执行 GraphQL 查询 |
+| GET | /api/graphql/schema | 获取 Schema |
+| GET | /api/graphql/playground | GraphQL Playground |
 
-```bash
-git clone ssh://git@codevault.example.com:2222/{user}/{repo}.git
-```
+### Git LFS
 
-### Push 代码
-
-```bash
-git add .
-git commit -m "Initial commit"
-git push origin main
-```
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/lfs/batch | LFS 批量操作 |
+| PUT | /api/lfs/objects | 上传对象 |
+| GET | /api/lfs/objects | 下载对象 |
+| GET | /api/lfs/stats | LFS 统计 |
 
 ## 功能完成度
 
-| 功能模块 | 状态 | 说明 |
-|---------|------|------|
-| 用户系统 | ✅ | 注册/登录/SSH Key |
-| 仓库管理 | ✅ | CRUD + Git 初始化 |
-| Git 操作 | ✅ | Clone/Push/Pull/History/Branch |
-| Issue 管理 | ✅ | CRUD + 状态管理 |
-| Pull Request | ✅ | 创建/合并/关闭/评论 |
-| 评论系统 | ✅ | Issue/PR/行内评论 |
-| 前端界面 | ✅ | Vue 3 + Element Plus |
-| 文件浏览 | ✅ | 文件树/代码高亮 |
-| 提交历史 | ✅ | 分页/分支切换 |
-| 分支管理 | ✅ | 创建/删除/保护 |
-| 搜索功能 | ✅ | 仓库/Issue/PR/用户 |
-| 通知系统 | ✅ | 未读/已读/删除 |
-| CI/CD | ✅ | 工作流管理 |
-| Projects | ✅ | 项目看板 |
-| 管理后台 | ✅ | 用户/仓库/系统管理 |
-| API 文档 | ✅ | 完整 API 文档 |
-| Docker 部署 | ✅ | 一键部署 |
+| 优先级 | 功能模块 | 状态 |
+|--------|---------|------|
+| P0 | 用户系统 | ✅ |
+| P0 | 仓库管理 | ✅ |
+| P0 | Git 操作 | ✅ |
+| P0 | Issue 管理 | ✅ |
+| P0 | Pull Request | ✅ |
+| P0 | Actions 执行引擎 | ✅ |
+| P0 | Email 通知 | ✅ |
+| P0 | REST API | ✅ |
+| P0 | 分支保护 | ✅ |
+| P0 | 文件上传 | ✅ |
+| P1 | 安全扫描 | ✅ |
+| P1 | 代码审查增强 | ✅ |
+| P1 | 组织团队管理 | ✅ |
+| P1 | 高级搜索 | ✅ |
+| P1 | 依赖漏洞告警 | ✅ |
+| P1 | 管理后台增强 | ✅ |
+| P1 | Redis 缓存优化 | ✅ |
+| P1 | 队列系统 | ✅ |
+| P2 | Dark Mode | ✅ |
+| P2 | 快捷键支持 | ✅ |
+| P2 | 仓库模板 | ✅ |
+| P2 | Issue/PR 模板 | ✅ |
+| P2 | 全文代码搜索 | ✅ |
+| P2 | GraphQL API | ✅ |
+| P2 | Git LFS | ✅ |
 
 ## License
 
