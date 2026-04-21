@@ -12,6 +12,31 @@ use Psr\Log\LogLevel;
 class Logger extends AbstractLogger
 {
     /**
+     * 敏感字段列表（需要脱敏）
+     */
+    private const SENSITIVE_FIELDS = [
+        'password',
+        'password_hash',
+        'password_confirm',
+        'token',
+        'secret',
+        'api_key',
+        'apikey',
+        'session_id',
+        'access_token',
+        'refresh_token',
+        'auth_token',
+        'private_key',
+        'secret_key',
+        'client_secret',
+        'authorization',
+        'credit_card',
+        'card_number',
+        'cvv',
+        'ssn',
+    ];
+
+    /**
      * 日志级别权重
      */
     private const LEVEL_WEIGHTS = [
@@ -77,11 +102,44 @@ class Logger extends AbstractLogger
             return;
         }
         
+        // 脱敏敏感信息
+        $context = $this->redactSensitive($context);
+        
         // 格式化消息
         $formatted = $this->formatMessage($level, $message, $context);
         
         // 写入日志文件
         $this->write($level, $formatted);
+    }
+
+    /**
+     * 脱敏敏感信息
+     */
+    private function redactSensitive(array $context): array
+    {
+        foreach (self::SENSITIVE_FIELDS as $field) {
+            // 直接匹配
+            if (isset($context[$field])) {
+                $context[$field] = '***REDACTED***';
+            }
+            
+            // 大小写不敏感匹配
+            $lowerField = strtolower($field);
+            foreach ($context as $key => $value) {
+                if (strtolower($key) === $lowerField) {
+                    $context[$key] = '***REDACTED***';
+                }
+            }
+        }
+        
+        // 递归处理嵌套数组
+        foreach ($context as $key => $value) {
+            if (is_array($value)) {
+                $context[$key] = $this->redactSensitive($value);
+            }
+        }
+        
+        return $context;
     }
 
     /**

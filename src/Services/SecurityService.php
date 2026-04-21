@@ -443,14 +443,41 @@ class SecurityService
     }
     
     /**
-     * 速率限制检查
+     * 速率限制检查（使用 Redis）
      */
     public function checkRateLimit(string $key, int $maxRequests = 100, int $windowSeconds = 3600): bool
     {
         $cacheKey = "rate_limit:{$key}";
         
-        // 这里需要 Redis 或其他缓存支持
-        // 简化实现：使用文件缓存
+        try {
+            // 优先使用 Redis
+            $cache = \Core\Cache::getInstance();
+            
+            if ($cache->isConnected()) {
+                // 使用 Redis 实现
+                $current = $cache->increment($cacheKey);
+                
+                if ($current === 1) {
+                    // 第一次请求，设置过期时间
+                    $cache->expire($cacheKey, $windowSeconds);
+                }
+                
+                return $current <= $maxRequests;
+            }
+        } catch (\Exception $e) {
+            // Redis 不可用，回退到文件缓存
+            error_log('Redis rate limit failed, falling back to file: ' . $e->getMessage());
+        }
+        
+        // 回退：使用文件缓存
+        return $this->checkRateLimitFile($key, $maxRequests, $windowSeconds);
+    }
+    
+    /**
+     * 速率限制检查（文件缓存回退方案）
+     */
+    private function checkRateLimitFile(string $key, int $maxRequests, int $windowSeconds): bool
+    {
         $cacheFile = sys_get_temp_dir() . '/rate_limit_' . md5($key);
         
         $data = ['count' => 0, 'reset_at' => time() + $windowSeconds];
