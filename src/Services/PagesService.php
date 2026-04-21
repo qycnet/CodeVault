@@ -361,43 +361,64 @@ class PagesService
      */
     private function runBuild(string $buildPath, string $buildType, string $sourceDir): string
     {
-        $output = [];
+        // 验证构建路径在允许范围内
+        if (!$this->security->validatePath($buildPath, [
+            self::STORAGE_PATH,
+            '/tmp/',
+        ])) {
+            throw new \Exception('非法构建路径');
+        }
         
-        switch ($buildType) {
-            case 'static':
-                // 静态文件无需构建
-                $output[] = 'Static site - no build required';
-                break;
-                
-            case 'jekyll':
-                chdir($buildPath);
-                exec('bundle install 2>&1 && bundle exec jekyll build 2>&1', $output);
-                break;
-                
-            case 'hugo':
-                chdir($buildPath);
-                exec('hugo 2>&1', $output);
-                break;
-                
-            case 'next':
-                chdir($buildPath);
-                exec('npm install 2>&1 && npm run build 2>&1 && npm run export 2>&1', $output);
-                break;
-                
-            case 'nuxt':
-                chdir($buildPath);
-                exec('npm install 2>&1 && npm run generate 2>&1', $output);
-                break;
-                
-            case 'vuepress':
-                chdir($buildPath);
-                exec('npm install 2>&1 && npm run build 2>&1', $output);
-                break;
-                
-            case 'docsify':
-                // Docsify 无需构建
-                $output[] = 'Docsify site - no build required';
-                break;
+        // 验证构建类型白名单
+        if (!isset(self::BUILD_TYPES[$buildType])) {
+            throw new \Exception('不支持的构建类型');
+        }
+        
+        $output = [];
+        $originalDir = getcwd();
+        
+        try {
+            switch ($buildType) {
+                case 'static':
+                    // 静态文件无需构建
+                    $output[] = 'Static site - no build required';
+                    break;
+                    
+                case 'jekyll':
+                    chdir($buildPath);
+                    exec('bundle install 2>&1 && bundle exec jekyll build 2>&1', $output);
+                    break;
+                    
+                case 'hugo':
+                    chdir($buildPath);
+                    exec('hugo 2>&1', $output);
+                    break;
+                    
+                case 'next':
+                    chdir($buildPath);
+                    exec('npm install 2>&1 && npm run build 2>&1 && npm run export 2>&1', $output);
+                    break;
+                    
+                case 'nuxt':
+                    chdir($buildPath);
+                    exec('npm install 2>&1 && npm run generate 2>&1', $output);
+                    break;
+                    
+                case 'vuepress':
+                    chdir($buildPath);
+                    exec('npm install 2>&1 && npm run build 2>&1', $output);
+                    break;
+                    
+                case 'docsify':
+                    // Docsify 无需构建
+                    $output[] = 'Docsify site - no build required';
+                    break;
+            }
+        } finally {
+            // 恢复原始目录
+            if ($originalDir !== false) {
+                chdir($originalDir);
+            }
         }
         
         return implode("\n", $output);

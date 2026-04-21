@@ -45,9 +45,15 @@ class SecurityService
     /**
      * 验证路径是否在允许的目录内
      * 防止路径遍历攻击
+     * 
+     * @param string $path 要验证的路径
+     * @param array|null $allowedDirs 可选的自定义允许目录列表
      */
-    public function validatePath(string $path): bool
+    public function validatePath(string $path, ?array $allowedDirs = null): bool
     {
+        // 使用自定义目录或默认白名单
+        $allowedDirectories = $allowedDirs ?? self::ALLOWED_DIRECTORIES;
+        
         // 规范化路径
         $realPath = realpath($path);
         
@@ -60,18 +66,23 @@ class SecurityService
                 return false;
             }
             
-            return $this->isPathAllowed($realParent);
+            return $this->isPathAllowed($realParent, $allowedDirectories);
         }
         
-        return $this->isPathAllowed($realPath);
+        return $this->isPathAllowed($realPath, $allowedDirectories);
     }
     
     /**
      * 检查路径是否在白名单目录内
+     * 
+     * @param string $path 要检查的路径
+     * @param array|null $allowedDirs 允许的目录列表
      */
-    private function isPathAllowed(string $path): bool
+    private function isPathAllowed(string $path, ?array $allowedDirs = null): bool
     {
-        foreach (self::ALLOWED_DIRECTORIES as $allowedDir) {
+        $allowedDirectories = $allowedDirs ?? self::ALLOWED_DIRECTORIES;
+        
+        foreach ($allowedDirectories as $allowedDir) {
             if (strpos($path, $allowedDir) === 0) {
                 return true;
             }
