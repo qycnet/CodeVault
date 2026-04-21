@@ -235,6 +235,33 @@
 - ✅ 心跳检测
 - ✅ 状态管理
 
+### Phase 11: 协作增强 ✅ NEW
+
+#### Pages 静态网站托管
+- ✅ **静态网站托管**：从仓库分支部署
+- ✅ **自定义域名**：DNS 验证绑定
+- ✅ **HTTPS 支持**：自动证书
+- ✅ **多种构建类型**：Jekyll/Hugo/Next/Nuxt/VuePress/Docsify
+- ✅ **部署管理**：自动部署、版本控制、回滚
+
+#### Gists 增强
+- ✅ 访问控制（public/unlisted/private）
+- ✅ 密码保护
+- ✅ 过期时间
+- ✅ 嵌入代码生成
+
+#### Wiki 增强
+- ✅ 富文本编辑器支持
+- ✅ 目录自动生成
+- ✅ 附件管理
+- ✅ 字数统计/阅读时间
+
+#### Webhooks 增强
+- ✅ 事件筛选（push/PR/issues/release 等）
+- ✅ 重试机制（最多 5 次）
+- ✅ 签名验证（HMAC-SHA256）
+- ✅ 投递日志
+
 ---
 
 ## 技术栈
@@ -269,6 +296,7 @@
 | SSO 安全 | 协议签名验证 + 状态管理 | ✅ |
 | 审计追踪 | 全面事件记录 + 风险分级 | ✅ |
 | 容器安全 | 镜像漏洞扫描 + CVE 检测 | ✅ |
+| 构建路径验证 | 白名单验证 + 目录恢复 | ✅ |
 
 ---
 
@@ -278,7 +306,7 @@
 codevault/
 ├── config/                 # 配置文件
 ├── database/
-│   ├── migrations/        # 数据库迁移 (001-019)
+│   ├── migrations/        # 数据库迁移 (001-020)
 │   ├── migrate.php        # 迁移脚本
 │   └── schema.sql         # 完整表结构
 ├── frontend/              # Vue 3 前端项目
@@ -318,6 +346,7 @@ codevault/
 │   │   ├── AuditService.php           # Phase 10
 │   │   ├── SsoService.php             # Phase 10
 │   │   ├── ContainerRegistryService.php # Phase 10
+│   │   ├── PagesService.php           # Phase 11
 │   │   └── ...
 │   └── Core/              # 核心组件
 │       ├── ErrorHandler.php
@@ -474,6 +503,18 @@ composer install
 | GET | /api/compliance/policies | 合规策略列表 |
 | POST | /api/compliance/reports | 生成合规报告 |
 
+### Pages 静态网站托管（Phase 11）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/pages | 创建站点 |
+| PUT | /api/pages/:id | 更新配置 |
+| DELETE | /api/pages/:id | 删除站点 |
+| POST | /api/pages/:id/deploy | 触发部署 |
+| GET | /api/pages/:id/deployments | 部署列表 |
+| POST | /api/pages/:id/domains | 添加域名 |
+| POST | /api/pages/domains/:id/verify | 验证域名 |
+
 ---
 
 ## 功能完成度
@@ -488,6 +529,7 @@ composer install
 | Phase 8 | 协作增强 | ✅ 100% |
 | Phase 9 | 开发者体验 | ✅ 100% |
 | **Phase 10** | **企业级功能** | **✅ 100%** |
+| **Phase 11** | **协作增强** | **✅ 100%** |
 
 ---
 
