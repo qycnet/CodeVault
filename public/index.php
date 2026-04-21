@@ -5,7 +5,7 @@
 
 // 错误报告
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 // 自动加载
 spl_autoload_register(function ($class) {
@@ -24,6 +24,9 @@ spl_autoload_register(function ($class) {
         require $file;
     }
 });
+
+// 初始化错误处理器
+\CodeVault\Core\ErrorHandler::init();
 
 // 启动Session
 use CodeVault\Services\Session;
