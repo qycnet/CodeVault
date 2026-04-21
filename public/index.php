@@ -217,6 +217,24 @@ $routes = [
     'GET /api/issue-templates' => ['IssueTemplateController', 'getIssueTemplates'],
     'POST /api/issue-templates' => ['IssueTemplateController', 'saveIssueTemplate'],
     'GET /api/pr-template' => ['IssueTemplateController', 'getPRTemplate'],
+    
+    // 全文代码搜索
+    'POST /api/search/index' => ['SearchController', 'indexRepository'],
+    'GET /api/search/code' => ['SearchController', 'searchCode'],
+    
+    // GraphQL API
+    'POST /api/graphql' => ['GraphQLController', 'execute'],
+    'GET /api/graphql/schema' => ['GraphQLController', 'schema'],
+    'GET /api/graphql/playground' => ['GraphQLController', 'playground'],
+    
+    // Git LFS
+    'POST /api/lfs/batch' => ['LfsController', 'batch'],
+    'PUT /api/lfs/objects' => ['LfsController', 'upload'],
+    'GET /api/lfs/objects' => ['LfsController', 'download'],
+    'POST /api/lfs/verify' => ['LfsController', 'verify'],
+    'GET /api/lfs/stats' => ['LfsController', 'stats'],
+    'POST /api/lfs/cleanup' => ['LfsController', 'cleanup'],
+    
     'GET /api/user/stars' => ['StarController', 'listUserStars'],
     
     // Star API
