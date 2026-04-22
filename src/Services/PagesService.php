@@ -385,28 +385,38 @@ class PagesService
                     break;
                     
                 case 'jekyll':
-                    chdir($buildPath);
-                    exec('bundle install 2>&1 && bundle exec jekyll build 2>&1', $output);
+                    $result = $this->executeBuildCommand(['bundle', 'install'], $buildPath);
+                    $output[] = $result;
+                    $result = $this->executeBuildCommand(['bundle', 'exec', 'jekyll', 'build'], $buildPath);
+                    $output[] = $result;
                     break;
                     
                 case 'hugo':
-                    chdir($buildPath);
-                    exec('hugo 2>&1', $output);
+                    $result = $this->executeBuildCommand(['hugo'], $buildPath);
+                    $output[] = $result;
                     break;
                     
                 case 'next':
-                    chdir($buildPath);
-                    exec('npm install 2>&1 && npm run build 2>&1 && npm run export 2>&1', $output);
+                    $result = $this->executeBuildCommand(['npm', 'install'], $buildPath);
+                    $output[] = $result;
+                    $result = $this->executeBuildCommand(['npm', 'run', 'build'], $buildPath);
+                    $output[] = $result;
+                    $result = $this->executeBuildCommand(['npm', 'run', 'export'], $buildPath);
+                    $output[] = $result;
                     break;
                     
                 case 'nuxt':
-                    chdir($buildPath);
-                    exec('npm install 2>&1 && npm run generate 2>&1', $output);
+                    $result = $this->executeBuildCommand(['npm', 'install'], $buildPath);
+                    $output[] = $result;
+                    $result = $this->executeBuildCommand(['npm', 'run', 'generate'], $buildPath);
+                    $output[] = $result;
                     break;
                     
                 case 'vuepress':
-                    chdir($buildPath);
-                    exec('npm install 2>&1 && npm run build 2>&1', $output);
+                    $result = $this->executeBuildCommand(['npm', 'install'], $buildPath);
+                    $output[] = $result;
+                    $result = $this->executeBuildCommand(['npm', 'run', 'build'], $buildPath);
+                    $output[] = $result;
                     break;
                     
                 case 'docsify':
@@ -422,6 +432,33 @@ class PagesService
         }
         
         return implode("\n", $output);
+    }
+    
+    /**
+     * 安全执行构建命令
+     */
+    private function executeBuildCommand(array $command, string $cwd): string
+    {
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open($command, $descriptorspec, $pipes, $cwd);
+        
+        if (!is_resource($process)) {
+            return 'Failed to start process';
+        }
+        
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+        
+        return trim($output . ' ' . $error);
     }
     
     /**

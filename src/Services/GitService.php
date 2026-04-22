@@ -12,6 +12,38 @@ use CodeVault\Models\SshKey;
 class GitService
 {
     /**
+     * 安全执行命令（使用 proc_open）
+     */
+    private static function executeCommand(array $command, ?string $cwd = null, ?array $env = null): array
+    {
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
+        
+        if (!is_resource($process)) {
+            return ['success' => false, 'output' => '', 'error' => '无法启动进程'];
+        }
+        
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $returnCode = proc_close($process);
+        
+        return [
+            'success' => $returnCode === 0,
+            'output' => trim($output),
+            'error' => trim($error),
+            'returnCode' => $returnCode,
+        ];
+    }
+    
+    /**
      * 获取仓库的 Git 命令前缀
      */
     private static function getGitCommand(string $repoPath, ?string $sshKey = null): string
@@ -54,24 +86,20 @@ class GitService
         }
         
         $gitCmd = self::getGitCommand($localPath, $sshKeyPath);
-        $cmd = sprintf(
-            '%s clone %s %s 2>&1',
-            $gitCmd,
-            escapeshellarg($repoUrl),
-            escapeshellarg($localPath)
-        );
         
-        exec($cmd, $output, $returnCode);
+        // 使用 proc_open 安全执行
+        $env = $sshKeyPath ? ['GIT_SSH_COMMAND' => 'ssh -o StrictHostKeyChecking=no -i ' . $sshKeyPath] : null;
+        $result = self::executeCommand(['git', 'clone', $repoUrl, $localPath], null, $env);
         
         // 清理临时 SSH Key
         if ($sshKeyPath && file_exists($sshKeyPath)) {
             unlink($sshKeyPath);
         }
         
-        if ($returnCode !== 0) {
+        if (!$result['success']) {
             return [
                 'success' => false,
-                'message' => 'Clone 失败: ' . implode("\n", $output),
+                'message' => 'Clone 失败: ' . $result['error'] . ' ' . $result['output'],
             ];
         }
         
@@ -115,24 +143,20 @@ class GitService
         }
         
         $gitCmd = self::getGitCommand($repoPath, $sshKeyPath);
-        $cmd = sprintf(
-            'cd %s && %s push origin %s 2>&1',
-            escapeshellarg($repoPath),
-            $gitCmd,
-            escapeshellarg($branch)
-        );
         
-        exec($cmd, $output, $returnCode);
+        // 使用 proc_open 安全执行
+        $env = $sshKeyPath ? ['GIT_SSH_COMMAND' => 'ssh -o StrictHostKeyChecking=no -i ' . $sshKeyPath] : null;
+        $result = self::executeCommand(['git', 'push', 'origin', $branch], $repoPath, $env);
         
         // 清理
         if ($sshKeyPath && file_exists($sshKeyPath)) {
             unlink($sshKeyPath);
         }
         
-        if ($returnCode !== 0) {
+        if (!$result['success']) {
             return [
                 'success' => false,
-                'message' => 'Push 失败: ' . implode("\n", $output),
+                'message' => 'Push 失败: ' . $result['error'] . ' ' . $result['output'],
             ];
         }
         
@@ -176,24 +200,20 @@ class GitService
         }
         
         $gitCmd = self::getGitCommand($repoPath, $sshKeyPath);
-        $cmd = sprintf(
-            'cd %s && %s pull origin %s 2>&1',
-            escapeshellarg($repoPath),
-            $gitCmd,
-            escapeshellarg($branch)
-        );
         
-        exec($cmd, $output, $returnCode);
+        // 使用 proc_open 安全执行
+        $env = $sshKeyPath ? ['GIT_SSH_COMMAND' => 'ssh -o StrictHostKeyChecking=no -i ' . $sshKeyPath] : null;
+        $result = self::executeCommand(['git', 'pull', 'origin', $branch], $repoPath, $env);
         
         // 清理
         if ($sshKeyPath && file_exists($sshKeyPath)) {
             unlink($sshKeyPath);
         }
         
-        if ($returnCode !== 0) {
+        if (!$result['success']) {
             return [
                 'success' => false,
-                'message' => 'Pull 失败: ' . implode("\n", $output),
+                'message' => 'Pull 失败: ' . $result['error'] . ' ' . $result['output'],
             ];
         }
         
@@ -223,17 +243,15 @@ class GitService
             return ['success' => false, 'message' => 'Git 仓库目录不存在'];
         }
         
-        $cmd = sprintf(
-            'cd %s && git status --porcelain 2>&1',
-            escapeshellarg($repoPath)
-        );
+        $result = self::executeCommand(['git', 'status', '--porcelain'], $repoPath);
         
-        exec($cmd, $output, $returnCode);
+        $output = $result['success'] ? $result['output'] : $result['error'];
+        $lines = $result['success'] ? explode("\n", trim($result['output'])) : [];
         
         return [
             'success' => true,
-            'status' => implode("\n", $output),
-            'clean' => empty($output),
+            'status' => $output,
+            'clean' => empty($lines) || ($lines === ['']),
         ];
     }
     
@@ -256,21 +274,18 @@ class GitService
             return ['success' => false, 'message' => 'Git 仓库目录不存在'];
         }
         
-        $cmd = sprintf(
-            'cd %s && git log --oneline -n %d 2>&1',
-            escapeshellarg($repoPath),
-            $limit
-        );
-        
-        exec($cmd, $output, $returnCode);
+        $result = self::executeCommand(['git', 'log', '--oneline', '-n', (string) $limit], $repoPath);
         
         $commits = [];
-        foreach ($output as $line) {
-            if (preg_match('/^([a-f0-9]+)\s+(.+)$/', $line, $matches)) {
-                $commits[] = [
-                    'hash' => $matches[1],
-                    'message' => $matches[2],
-                ];
+        if ($result['success']) {
+            $lines = explode("\n", trim($result['output']));
+            foreach ($lines as $line) {
+                if (preg_match('/^([a-f0-9]+)\s+(.+)$/', $line, $matches)) {
+                    $commits[] = [
+                        'hash' => $matches[1],
+                        'message' => $matches[2],
+                    ];
+                }
             }
         }
         
@@ -289,26 +304,24 @@ class GitService
             return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
         }
         
-        $cmd = sprintf(
-            'cd %s && git branch -a 2>&1',
-            escapeshellarg($gitPath)
-        );
-        
-        exec($cmd, $output, $returnCode);
+        $result = self::executeCommand(['git', 'branch', '-a'], $gitPath);
         
         $branches = [];
-        foreach ($output as $line) {
-            $line = trim($line);
-            // 跳过远程分支和当前分支标记
-            if (empty($line) || strpos($line, 'remotes/') !== false) {
-                continue;
-            }
-            
-            // 移除当前分支标记 (*)
-            $branch = ltrim($line, '* ');
-            
-            if (!empty($branch)) {
-                $branches[] = $branch;
+        if ($result['success']) {
+            $lines = explode("\n", trim($result['output']));
+            foreach ($lines as $line) {
+                $line = trim($line);
+                // 跳过远程分支和当前分支标记
+                if (empty($line) || strpos($line, 'remotes/') !== false) {
+                    continue;
+                }
+                
+                // 移除当前分支标记 (*)
+                $branch = ltrim($line, '* ');
+                
+                if (!empty($branch)) {
+                    $branches[] = $branch;
+                }
             }
         }
         
@@ -330,29 +343,27 @@ class GitService
         $skip = $page * $perPage;
         
         // 获取提交列表
-        $cmd = sprintf(
-            'cd %s && git log %s --format="%%H|%%h|%%s|%%an|%%ae|%%ci" --skip=%d -n %d 2>&1',
-            escapeshellarg($gitPath),
-            escapeshellarg($branch),
-            $skip,
-            $perPage
+        $result = self::executeCommand(
+            ['git', 'log', $branch, '--format=%H|%h|%s|%an|%ae|%ci', '--skip=' . $skip, '-n', (string) $perPage],
+            $gitPath
         );
         
-        exec($cmd, $output, $returnCode);
-        
         $commits = [];
-        foreach ($output as $line) {
-            $parts = explode('|', $line);
-            if (count($parts) >= 6) {
-                $commits[] = [
-                    'full_hash' => $parts[0],
-                    'hash' => $parts[1],
-                    'message' => $parts[2],
-                    'author_name' => $parts[3],
-                    'author_email' => $parts[4],
-                    'time' => $parts[5],
-                    'author_avatar' => null // 可以使用 Gravatar
-                ];
+        if ($result['success']) {
+            $lines = explode("\n", trim($result['output']));
+            foreach ($lines as $line) {
+                $parts = explode('|', $line);
+                if (count($parts) >= 6) {
+                    $commits[] = [
+                        'full_hash' => $parts[0],
+                        'hash' => $parts[1],
+                        'message' => $parts[2],
+                        'author_name' => $parts[3],
+                        'author_email' => $parts[4],
+                        'time' => $parts[5],
+                        'author_avatar' => null // 可以使用 Gravatar
+                    ];
+                }
             }
         }
         
@@ -372,15 +383,12 @@ class GitService
         }
         
         // 获取提交信息
-        $cmd = sprintf(
-            'cd %s && git show --format="%%H|%%h|%%s|%%b|%%an|%%ae|%%ci" --no-patch %s 2>&1',
-            escapeshellarg($gitPath),
-            escapeshellarg($hash)
+        $result = self::executeCommand(
+            ['git', 'show', '--format=%H|%h|%s|%b|%an|%ae|%ci', '--no-patch', $hash],
+            $gitPath
         );
         
-        exec($cmd, $output, $returnCode);
-        
-        if ($returnCode !== 0 || empty($output)) {
+        if (!$result['success'] || empty($result['output'])) {
             return ['code' => 404, 'message' => '提交不存在'];
         }
         
@@ -397,31 +405,28 @@ class GitService
         ];
         
         // 获取文件变更
-        $cmd = sprintf(
-            'cd %s && git show --name-status --format="" %s 2>&1',
-            escapeshellarg($gitPath),
-            escapeshellarg($hash)
-        );
-        
-        exec($cmd, $filesOutput);
+        $result = self::executeCommand(['git', 'show', '--name-status', '--format=', $hash], $gitPath);
         
         $files = [];
-        foreach ($filesOutput as $line) {
-            if (preg_match('/^([AMD])\s+(.+)$/', trim($line), $matches)) {
-                $status = $matches[1];
-                $path = $matches[2];
-                
-                // 获取变更统计
-                $statusText = 'modified';
-                if ($status === 'A') $statusText = 'added';
-                if ($status === 'D') $statusText = 'deleted';
-                
-                $files[] = [
-                    'status' => $statusText,
-                    'path' => $path,
-                    'additions' => 0, // 简化处理
-                    'deletions' => 0
-                ];
+        if ($result['success']) {
+            $lines = explode("\n", trim($result['output']));
+            foreach ($lines as $line) {
+                if (preg_match('/^([AMD])\s+(.+)$/', trim($line), $matches)) {
+                    $status = $matches[1];
+                    $path = $matches[2];
+                    
+                    // 获取变更统计
+                    $statusText = 'modified';
+                    if ($status === 'A') $statusText = 'added';
+                    if ($status === 'D') $statusText = 'deleted';
+                    
+                    $files[] = [
+                        'status' => $statusText,
+                        'path' => $path,
+                        'additions' => 0, // 简化处理
+                        'deletions' => 0
+                    ];
+                }
             }
         }
         
@@ -442,19 +447,16 @@ class GitService
             return ['code' => 404, 'message' => 'Git 仓库目录不存在'];
         }
         
-        $cmd = sprintf(
-            'cd %s && git log -1 --format="%%H|%%h|%%s|%%an|%%ci" %s 2>&1',
-            escapeshellarg($gitPath),
-            escapeshellarg($branch)
+        $result = self::executeCommand(
+            ['git', 'log', '-1', '--format=%H|%h|%s|%an|%ci', $branch],
+            $gitPath
         );
         
-        exec($cmd, $output, $returnCode);
-        
-        if ($returnCode !== 0 || empty($output)) {
+        if (!$result['success'] || empty($result['output'])) {
             return ['code' => 404, 'message' => '分支不存在'];
         }
         
-        $parts = explode('|', $output[0]);
+        $parts = explode('|', $result['output']);
         
         return [
             'code' => 200,
@@ -478,14 +480,9 @@ class GitService
         }
         
         // 检查分支是否已存在
-        $cmd = sprintf(
-            'cd %s && git show-ref --verify --quiet refs/heads/%s 2>&1',
-            escapeshellarg($gitPath),
-            escapeshellarg($name)
-        );
-        exec($cmd, $output, $returnCode);
+        $result = self::executeCommand(['git', 'show-ref', '--verify', '--quiet', 'refs/heads/' . $name], $gitPath);
         
-        if ($returnCode === 0) {
+        if ($result['returnCode'] === 0) {
             return ['code' => 400, 'message' => '分支已存在'];
         }
         
@@ -524,15 +521,10 @@ class GitService
         }
         
         // 删除分支
-        $cmd = sprintf(
-            'cd %s && git branch -D %s 2>&1',
-            escapeshellarg($gitPath),
-            escapeshellarg($name)
-        );
-        exec($cmd, $output, $returnCode);
+        $result = self::executeCommand(['git', 'branch', '-D', $name], $gitPath);
         
-        if ($returnCode !== 0) {
-            return ['code' => 500, 'message' => '删除分支失败: ' . implode("\n", $output)];
+        if (!$result['success']) {
+            return ['code' => 500, 'message' => '删除分支失败: ' . $result['error']];
         }
         
         return [

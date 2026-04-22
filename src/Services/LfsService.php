@@ -297,15 +297,31 @@ class LfsService
         }
         
         // 在 Git 仓库中搜索 LFS 指针
-        $cmd = sprintf(
-            'cd %s && git grep -l "oid sha256:%s" 2>/dev/null | head -1',
-            escapeshellarg($repo['git_path']),
-            escapeshellarg($oid)
+        // 使用 proc_open 安全执行
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open(
+            ['git', 'grep', '-l', 'oid sha256:' . $oid],
+            $descriptorspec,
+            $pipes,
+            $repo['git_path']
         );
         
-        exec($cmd, $output, $returnCode);
+        if (!is_resource($process)) {
+            return false;
+        }
         
-        return $returnCode === 0 && !empty($output);
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $returnCode = proc_close($process);
+        
+        return $returnCode === 0 && !empty(trim($output));
     }
     
     /**

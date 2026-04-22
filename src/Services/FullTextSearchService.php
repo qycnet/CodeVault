@@ -470,19 +470,34 @@ class FullTextSearchService
      */
     private function getFileContent(string $gitPath, string $file): ?string
     {
-        $cmd = sprintf(
-            'cd %s && git show HEAD:%s 2>/dev/null',
-            escapeshellarg($gitPath),
-            escapeshellarg($file)
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open(
+            ['git', 'show', 'HEAD:' . $file],
+            $descriptorspec,
+            $pipes,
+            $gitPath
         );
         
-        exec($cmd, $output, $returnCode);
+        if (!is_resource($process)) {
+            return null;
+        }
+        
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $returnCode = proc_close($process);
         
         if ($returnCode !== 0) {
             return null;
         }
         
-        return implode("\n", $output);
+        return $output;
     }
     
     /**
@@ -508,19 +523,34 @@ class FullTextSearchService
      */
     private function isLargeFile(string $gitPath, string $file): bool
     {
-        $cmd = sprintf(
-            'cd %s && git cat-file -s HEAD:%s 2>/dev/null',
-            escapeshellarg($gitPath),
-            escapeshellarg($file)
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        
+        $process = proc_open(
+            ['git', 'cat-file', '-s', 'HEAD:' . $file],
+            $descriptorspec,
+            $pipes,
+            $gitPath
         );
         
-        exec($cmd, $output, $returnCode);
+        if (!is_resource($process)) {
+            return false;
+        }
+        
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $returnCode = proc_close($process);
         
         if ($returnCode !== 0 || empty($output)) {
             return true;
         }
         
-        return (int) $output[0] > 1024 * 1024; // 1MB
+        return (int) trim($output) > 1024 * 1024; // 1MB
     }
     
     /**
