@@ -1,0 +1,87 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # 每周扫描一次
+
+jobs:
+  security:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, curl, zip
+          coverage: xdebug
+      
+      - name: Install dependencies
+        run: composer install --no-progress --no-suggest
+      
+      - name: Run PHP Security Checker
+        uses: docker://jakzal/phpqa:php8.2
+        with:
+          args: php-security-checker security:check composer.lock
+        continue-on-error: true
+      
+      - name: Run PHPStan
+        uses: docker://jakzal/phpqa:php8.2
+        with:
+          args: phpstan analyse --level=5 --no-progress src/
+        continue-on-error: true
+      
+      - name: Check for sensitive data exposure
+        run: |
+          echo "Checking for potential sensitive data exposure..."
+          ! grep -r "password\s*=\s*['\"]" src/ --include="*.php" || echo "Warning: Hardcoded password found"
+          ! grep -r "api_key\s*=\s*['\"]" src/ --include="*.php" || echo "Warning: Hardcoded API key found"
+          ! grep -r "secret\s*=\s*['\"]" src/ --include="*.php" || echo "Warning: Hardcoded secret found"
+      
+      - name: Run security tests
+        run: php tests/SecurityTest.php
+        continue-on-error: true
+      
+      - name: Generate security report
+        run: |
+          echo "## Security Scan Report" > security-report.md
+          echo "" >> security-report.md
+          echo "**Date:** $(date)" >> security-report.md
+          echo "" >> security-report.md
+          echo "### Checks Performed" >> security-report.md
+          echo "- [x] PHP Security Checker" >> security-report.md
+          echo "- [x] PHPStan Static Analysis" >> security-report.md
+          echo "- [x] Sensitive Data Exposure Check" >> security-report.md
+          echo "- [x] Security Unit Tests" >> security-report.md
+      
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.md
+
+  dependency-check:
+    name: Dependency Vulnerability Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'

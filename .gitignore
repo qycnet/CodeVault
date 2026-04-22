@@ -1,8 +1,5 @@
 # Git 忽略规则
 
-# 文档目录
-docs/
-
 # 依赖目录
 node_modules/
 vendor/
@@ -34,3 +31,7 @@ logs/
 tmp/
 temp/
 *.tmp
+
+# 需求文档（不上传）
+docs/*requirements*.html
+docs/requirements/
