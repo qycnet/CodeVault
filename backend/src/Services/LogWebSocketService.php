@@ -197,13 +197,28 @@ class LogWebSocketService implements MessageComponentInterface
             return false;
         }
         
-        // TODO: 查询数据库验证权限
-        // SELECT r.* FROM workflow_runs r
-        // JOIN repositories repo ON r.repo_id = repo.id
-        // LEFT JOIN repo_users ru ON repo.id = ru.repo_id
-        // WHERE r.id = ? AND (repo.owner_id = ? OR ru.user_id = ?)
-        
-        return true;
+        // 查询数据库验证权限
+        try {
+            $pdo = \CodeVault\Database\Connection::getPdo();
+            
+            $stmt = $pdo->prepare("
+                SELECT r.id 
+                FROM workflow_runs r
+                JOIN repositories repo ON r.repo_id = repo.id
+                LEFT JOIN repo_users ru ON repo.id = ru.repo_id AND ru.user_id = ?
+                LEFT JOIN organization_members om ON repo.org_id = om.org_id AND om.user_id = ?
+                WHERE r.id = ? 
+                AND (repo.owner_id = ? OR ru.user_id = ? OR om.user_id = ? OR repo.is_private = 0)
+            ");
+            
+            $stmt->execute([$userId, $userId, $runId, $userId, $userId, $userId]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            return $result !== false;
+        } catch (\Exception $e) {
+            error_log("Permission check failed: " . $e->getMessage());
+            return false;
+        }
     }
     
     /**

@@ -284,29 +284,50 @@ async function createRepo() {
   creating.value = true
   
   try {
-    // TODO: 调用创建仓库 API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 调用创建仓库 API
+    const res = await fetch('/api/repos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        name: createForm.name,
+        description: createForm.description,
+        is_private: createForm.isPrivate,
+        init_readme: createForm.initReadme
+      })
+    })
     
-    const newRepo = {
-      id: Date.now(),
-      owner: 'codemaster',
-      name: createForm.name,
-      description: createForm.description,
-      language: null,
-      stars: 0,
-      forks: 0,
-      isPrivate: createForm.isPrivate,
-      updatedAt: new Date()
+    const data = await res.json()
+    
+    if (data.code === 200 || res.ok) {
+      const newRepo = {
+        id: data.data?.id || Date.now(),
+        owner: data.data?.owner || localStorage.getItem('username') || 'me',
+        name: createForm.name,
+        description: createForm.description,
+        language: null,
+        stars: 0,
+        forks: 0,
+        isPrivate: createForm.isPrivate,
+        updatedAt: new Date()
+      }
+      
+      repos.value.unshift(newRepo)
+      showCreateDialog.value = false
+      ElMessage.success('仓库创建成功')
+      
+      // 重置表单
+      createFormRef.value.resetFields()
+      
+      // 跳转到新仓库
+      router.push(`/repos/${newRepo.owner}/${newRepo.name}`)
+    } else {
+      throw new Error(data.message || '创建失败')
     }
-    
-    repos.value.unshift(newRepo)
-    showCreateDialog.value = false
-    ElMessage.success('仓库创建成功')
-    
-    // 重置表单
-    createFormRef.value.resetFields()
-  } catch (error) {
-    ElMessage.error('创建失败')
+  } catch (error: any) {
+    ElMessage.error(error.message || '创建失败')
   } finally {
     creating.value = false
   }
@@ -347,8 +368,37 @@ function handleCommand(command, repo) {
   }
 }
 
-onMounted(() => {
-  // TODO: 加载仓库列表
+onMounted(async () => {
+  // 加载仓库列表
+  loading.value = true
+  try {
+    const res = await fetch('/api/repos', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    
+    const data = await res.json()
+    
+    if (data.code === 200 || res.ok) {
+      repos.value = (data.data || data.repos || []).map((repo: any) => ({
+        id: repo.id,
+        owner: repo.owner?.username || repo.owner || 'me',
+        name: repo.name,
+        description: repo.description,
+        language: repo.language,
+        stars: repo.stars || repo.star_count || 0,
+        forks: repo.forks || repo.fork_count || 0,
+        isPrivate: repo.is_private || repo.isPrivate || false,
+        updatedAt: new Date(repo.updated_at || repo.updatedAt || Date.now())
+      }))
+    }
+  } catch (e) {
+    console.error('Failed to load repos:', e)
+    // 保持模拟数据作为后备
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 

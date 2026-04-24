@@ -325,8 +325,24 @@ const newTier = reactive({
 
 // 计算属性
 const userId = computed(() => Number(route.params.id) || 1)
-const isMyProfile = computed(() => false) // TODO: 检查是否是当前用户
-const isCreator = computed(() => true) // TODO: 检查是否是创作者
+const currentUserId = computed(() => {
+  // 从 localStorage 获取当前用户 ID
+  const userStr = localStorage.getItem('user')
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr)
+      return user.id
+    } catch (e) {
+      return null
+    }
+  }
+  return null
+})
+const isMyProfile = computed(() => currentUserId.value === userId.value)
+const isCreator = computed(() => {
+  // 检查是否是创作者（有赞助等级或已开启赞助）
+  return tiers.value.length > 0 || stats.value?.is_creator === true
+})
 const sponsorAmount = computed(() => {
   return customAmount.value ? Number(customAmount.value) : selectedAmount.value
 })

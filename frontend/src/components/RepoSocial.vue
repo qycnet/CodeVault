@@ -108,11 +108,36 @@ const owner = computed(() => route.params.owner as string)
 const repo = computed(() => route.params.repo as string)
 
 const forkOptions = computed(() => {
-  // TODO: 从 API 获取用户和组织列表
-  return [
+  // 从 API 获取的用户和组织列表
+  const options = [
     { label: '我的账户', value: 'me' }
   ]
+  
+  // 添加用户所属的组织
+  if (userOrgs.value.length > 0) {
+    userOrgs.value.forEach((org: any) => {
+      options.push({
+        label: org.name || org.username,
+        value: org.username
+      })
+    })
+  }
+  
+  return options
 })
+
+const userOrgs = ref<any[]>([])
+
+async function fetchUserOrgs() {
+  try {
+    const res: any = await api.get('/user/orgs')
+    if (res.code === 200 && res.data) {
+      userOrgs.value = res.data
+    }
+  } catch (e) {
+    console.error('Failed to fetch user orgs:', e)
+  }
+}
 
 function getWatchText() {
   if (!isWatching.value) return 'Watch'
@@ -204,6 +229,7 @@ async function createFork() {
 
 onMounted(() => {
   fetchSocialData()
+  fetchUserOrgs()
 })
 </script>
 

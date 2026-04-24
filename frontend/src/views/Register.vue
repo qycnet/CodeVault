@@ -178,20 +178,36 @@ async function sendVerificationCode() {
   sendingCode.value = true
   
   try {
-    // TODO: 调用发送验证码 API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    ElMessage.success('验证码已发送到您的邮箱')
+    // 调用发送验证码 API
+    const res = await fetch('/api/auth/send-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: form.email,
+        type: 'register'
+      })
+    })
     
-    // 开始倒计时
-    countdown.value = 60
-    const timer = setInterval(() => {
-      countdown.value--
-      if (countdown.value <= 0) {
-        clearInterval(timer)
-      }
-    }, 1000)
-  } catch (error) {
-    ElMessage.error('发送验证码失败')
+    const data = await res.json()
+    
+    if (data.code === 200 || res.ok) {
+      ElMessage.success('验证码已发送到您的邮箱')
+      
+      // 开始倒计时
+      countdown.value = 60
+      const timer = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0) {
+          clearInterval(timer)
+        }
+      }, 1000)
+    } else {
+      throw new Error(data.message || '发送失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '发送验证码失败')
   } finally {
     sendingCode.value = false
   }
